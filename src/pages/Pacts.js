@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import Container from '../components/Container';
 import {connect} from 'react-redux';
 import {setAppBarTitle} from '../store/reducers/ui';
 
@@ -10,7 +9,7 @@ class Pacts extends Component {
 
   render() {
     return (
-      <Container/>
+      <div/>
     );
   }
 }

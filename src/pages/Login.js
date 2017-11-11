@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import {connect} from 'react-redux';
 import {setAppBarTitle} from '../store/reducers/ui';
-import Container from '../components/Container';
+import LoginForm from '../components/LoginForm';
 
 class App extends Component {
   componentWillMount() {
@@ -9,9 +9,19 @@ class App extends Component {
   }
 
   render() {
+    const styles = {
+      login: {
+        height: '100%',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+      },
+    }
+
     return (
-      <Container>
-      </Container>
+      <div style={styles.login}>
+        <LoginForm/>
+      </div>
     );
   }
 }

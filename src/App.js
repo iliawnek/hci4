@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import './App.css';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
-import Router from './Router';
+import Container from './components/Container';
 import {Provider} from 'react-redux';
 import store from './store';
 
@@ -10,7 +10,7 @@ class App extends Component {
     return (
       <Provider store={store}>
         <MuiThemeProvider>
-            <Router/>
+            <Container/>
         </MuiThemeProvider>
       </Provider>
     );
