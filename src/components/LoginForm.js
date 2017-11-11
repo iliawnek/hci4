@@ -16,7 +16,7 @@ class LoginForm extends Component {
     this.props.userLoading();
     try {
       await auth.createUserWithEmailAndPassword(this.state.email, this.state.password);
-      this.props.history.push('/pacts');
+      this.props.history.push('/setup');
     } catch (error) {
       console.log(error)
     }
