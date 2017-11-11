@@ -3,6 +3,8 @@ import TextField from 'material-ui/TextField';
 import RaisedButton from 'material-ui/RaisedButton';
 import {auth} from '../Firebase';
 import {withRouter} from 'react-router';
+import {connect} from 'react-redux';
+import {userLoading} from '../store/reducers/auth';
 
 class LoginForm extends Component {
   state = {
@@ -11,6 +13,7 @@ class LoginForm extends Component {
   };
 
   register = async () => {
+    this.props.userLoading();
     try {
       await auth.createUserWithEmailAndPassword(this.state.email, this.state.password);
       this.props.history.push('/pacts');
@@ -20,6 +23,7 @@ class LoginForm extends Component {
   }
 
   login = async () => {
+    this.props.userLoading();
     try {
       await auth.signInWithEmailAndPassword(this.state.email, this.state.password);
       this.props.history.push('/pacts');
@@ -70,4 +74,6 @@ class LoginForm extends Component {
   }
 }
 
-export default withRouter(LoginForm);
+export default connect(null, {
+  userLoading,
+})(withRouter(LoginForm));

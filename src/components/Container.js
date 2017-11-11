@@ -1,88 +1,46 @@
 import React, { Component } from 'react';
 import {connect} from 'react-redux';
-import AppBar from 'material-ui/AppBar';
-import Drawer from 'material-ui/Drawer';
-import {List, ListItem} from 'material-ui/List';
-import Avatar from 'material-ui/Avatar';
-import CloseIcon from 'material-ui/svg-icons/navigation/close';
-import IconButton from 'material-ui/IconButton';
 import {auth} from '../Firebase';
-import {setUser} from '../store/reducers/auth';
-import {BrowserRouter as Router, Route} from 'react-router-dom';
+import {userLoading, userLoaded, setUser} from '../store/reducers/auth';
+import {Route} from 'react-router-dom';
 import Login from '../pages/Login';
 import Pacts from '../pages/Pacts';
+import {BrowserRouter as Router} from 'react-router-dom';
+import Header from './Header';
 
 class Container extends Component {
-  state = {
-    open: false,
-  }
 
   componentWillMount() {
+    this.props.userLoading();
     auth.onAuthStateChanged(user => {
+      this.props.userLoaded();
       this.props.setUser(user);
     })
   }
 
-  toggleDrawer = () => {
-    this.setState({open: !this.state.open});
-  }
-
-  logOut = () => {
-    auth.signOut();
-  }
-
   render() {
-    const email = this.props.user && this.props.user.email;
-    const firstLetter = email && email.charAt(0);
-
     const styles = {
       content: {
         height: 'calc(100vh - 64px)',
       },
     }
 
-    const userListItem = (
-      <ListItem
-        primaryText={email}
-        leftAvatar={<Avatar>{firstLetter}</Avatar>}
-        rightIconButton={
-          <IconButton
-            onClick={this.logOut}
-          >
-            <CloseIcon/>
-          </IconButton>}
-      />
-    )
-
     return (
-      <div>
-        <AppBar
-          title={this.props.title}
-          onLeftIconButtonTouchTap={this.toggleDrawer}
-        />
-        <Drawer
-          docked={false}
-          open={this.state.open}
-          onRequestChange={open => this.setState({open})}
-        >
-          <List>
-            {this.props.user && userListItem}
-          </List>
-        </Drawer>
-        <Router>
+      <Router>
+        <div>
+          <Header/>
           <div style={styles.content}>
             <Route exact path="/" component={Login}/>
             <Route path="/pacts" component={Pacts}/>
           </div>
-        </Router>
-      </div>
+        </div>
+      </Router>
     );
   }
 }
 
-export default connect(state => ({
-  title: state.ui.appBarTitle,
-  user: state.auth.user,
-}), {
+export default connect(null, {
+  userLoading,
+  userLoaded,
   setUser,
 })(Container);

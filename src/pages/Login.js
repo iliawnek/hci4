@@ -2,10 +2,17 @@ import React, { Component } from 'react';
 import {connect} from 'react-redux';
 import {setAppBarTitle} from '../store/reducers/ui';
 import LoginForm from '../components/LoginForm';
+import {withRouter} from 'react-router';
 
-class App extends Component {
+class Login extends Component {
   componentWillMount() {
     this.props.setAppBarTitle('Login');
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.user) {
+      this.props.history.push('/pacts');
+    }
   }
 
   render() {
@@ -26,6 +33,8 @@ class App extends Component {
   }
 }
 
-export default connect(null, {
+export default withRouter(connect(state => ({
+  user: state.auth.user,
+}), {
   setAppBarTitle,
-})(App);
+})(Login));

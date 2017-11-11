@@ -1,4 +1,6 @@
 const SET_APPBAR_TITLE = 'hci4/ui/SET_APPBAR_TITLE';
+const OPEN_SIDEBAR = 'hci4/ui/OPEN_SIDEBAR';
+const CLOSE_SIDEBAR = 'hci4/ui/CLOSE_SIDEBAR';
 
 export function setAppBarTitle(title) {
   return {
@@ -7,8 +9,21 @@ export function setAppBarTitle(title) {
   };
 }
 
+export function openSidebar() {
+  return {
+    type: OPEN_SIDEBAR,
+  };
+}
+
+export function closeSidebar() {
+  return {
+    type: CLOSE_SIDEBAR,
+  };
+}
+
 const initialState = {
-  appBarTitle: "Running",
+  appBarTitle: "",
+  sidebarOpen: false,
 };
 
 export default function ui(state = initialState, action = {}) {
@@ -18,6 +33,18 @@ export default function ui(state = initialState, action = {}) {
         ...state,
         appBarTitle: action.title,
       };
+
+    case OPEN_SIDEBAR:
+      return {
+        ...state,
+        sidebarOpen: true,
+      }
+
+    case CLOSE_SIDEBAR:
+      return {
+        ...state,
+        sidebarOpen: false,
+      }
 
     default:
       return state;
