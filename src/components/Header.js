@@ -35,7 +35,10 @@ class Header extends Component {
     this.props.history.goBack();
   }
 
-  handleClickPacts = () => this.props.history.push('/pacts');
+  linkFromSidebar = (to) => {
+    this.props.history.push(to);
+    this.props.closeSidebar();
+  }
 
   render() {
     const email = this.props.user && this.props.user.email;
@@ -53,39 +56,54 @@ class Header extends Component {
       />
     );
 
-    const closeButton = this.props.closeButtonShown ? (
+    const closeButton = (
       <IconButton
         onClick={this.handleClose}
       >
         <CloseIcon />
       </IconButton>
-    ) : null;
+    );
+
+    const createSidebarLink = (props) => {
+      const {to, ...listItemProps} = props;
+      return (
+        <ListItem
+          {...listItemProps}
+          onClick={this.linkFromSidebar.bind(this, to)}
+        />
+      )
+    }
+
+    const sidebar = (
+      <Drawer
+        docked={false}
+        open={this.props.sidebarOpen}
+        onRequestChange={this.onSidebarChange}
+      >
+        <List>
+          {userListItem}
+        </List>
+        <Divider/>
+        <List>
+          {createSidebarLink({
+            to: '/pacts',
+            primaryText: 'Pacts',
+            secondaryText: '# pacts active',
+            leftIcon: <PactsIcon/>,
+          })}
+        </List>
+      </Drawer>
+    )
 
     return (
       <div>
         <AppBar
           title={this.props.title}
           onLeftIconButtonTouchTap={this.toggleSidebar}
-          iconElementRight={closeButton}
+          showMenuIconButton={this.props.user !== null}
+          iconElementRight={this.props.closeButtonShown ? closeButton : null}
         />
-        <Drawer
-          docked={false}
-          open={this.props.sidebarOpen}
-          onRequestChange={this.onSidebarChange}
-        >
-          <List>
-            {this.props.user && userListItem}
-          </List>
-          <Divider />
-          <List>
-            <ListItem
-              primaryText="Pacts"
-              secondaryText="# pacts active"
-              leftIcon={<PactsIcon />}
-              onClick={this.handleClickPacts}
-            />
-          </List>
-        </Drawer>
+        {this.props.user && sidebar}
       </div>
     );
   }
