@@ -10,9 +10,15 @@ class User extends Component {
     userData: null
   }
 
+  componentWillMount() {
+    if (this.props.userData) {
+      this.props.setAppBarTitle(this.props.userData.displayName);
+    }
+  }
+
   componentWillReceiveProps(nextProps) {
     // if currently signed in user has been loaded
-    if (nextProps.user) {
+    if (nextProps.user && nextProps.userData) {
       const uidParam = nextProps.match.params.uid;
       const uidLoggedIn = nextProps.user.uid;
       // if this is user's own page
