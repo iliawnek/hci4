@@ -45,7 +45,6 @@ class Container extends Component {
         bottom: 0,
         left: 0,
         right: 0,
-        padding: 8,
         backgroundColor: grey100,
         overflowY: "auto",
         overflowX: "hidden"
