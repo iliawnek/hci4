@@ -41,12 +41,16 @@ class Header extends Component {
   }
 
   render() {
-    const email = this.props.user && this.props.user.email;
-    const firstLetter = email && email.charAt(0);
+    const email = this.props.userData && this.props.userData.email;
+    const displayName = this.props.userData && this.props.userData.displayName;
+    const firstLetter = displayName ?
+      displayName.charAt(0) :
+      (email && email.charAt(0));
 
     const userListItem = (
       <ListItem
-        primaryText={email}
+        primaryText={displayName || email}
+        secondaryText={displayName ? email : null}
         leftAvatar={<Avatar>{firstLetter}</Avatar>}
         rightIconButton={
           <IconButton onClick={this.logOut}>
@@ -114,6 +118,7 @@ export default withRouter(
     state => ({
       title: state.ui.appBarTitle,
       user: state.auth.user,
+      userData: state.auth.userData,
       sidebarOpen: state.ui.sidebarOpen,
       closeButtonShown: state.ui.closeButtonShown
     }),
