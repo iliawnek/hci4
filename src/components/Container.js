@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
-import { auth } from "../Firebase";
-import { userLoading, userLoaded, setUser } from "../store/reducers/auth";
+import { auth, db } from "../Firebase";
+import { userLoading, userLoaded, setUser, setUserData } from "../store/reducers/auth";
 import { Route } from "react-router-dom";
 import Login from "../pages/Login";
 import Pacts from "../pages/Pacts";
@@ -16,6 +16,22 @@ class Container extends Component {
     auth.onAuthStateChanged(user => {
       this.props.userLoaded();
       this.props.setUser(user);
+
+      if (user) {
+        const {uid} = user;
+        // add new user to database
+        db.ref('/users').once('value', snapshot => {
+          if (!snapshot.hasChild(uid)) {
+            db.ref(`/users/${uid}`).set({
+              email: user.email,
+            })
+          }
+        });
+        // create listener for user
+        db.ref(`/users/${uid}`).on('value', snapshot => {
+          this.props.setUserData(snapshot.val());
+        });
+      }
     });
   }
 
@@ -52,5 +68,6 @@ class Container extends Component {
 export default connect(null, {
   userLoading,
   userLoaded,
-  setUser
+  setUser,
+  setUserData
 })(Container);

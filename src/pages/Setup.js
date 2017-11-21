@@ -6,6 +6,7 @@ import RaisedButton from "material-ui/RaisedButton";
 import FlatButton from "material-ui/FlatButton";
 import TimePicker from "material-ui/TimePicker";
 import { Step, Stepper, StepLabel, StepContent } from "material-ui/Stepper";
+import { db } from '../Firebase';
 
 class Setup extends Component {
   state = {
@@ -54,7 +55,14 @@ class Setup extends Component {
     });
   };
 
-  finish = () => {};
+  finish = () => {
+    const { uid } = this.props.user
+    db.ref(`users/${uid}`).update({
+      displayName: this.state.displayName,
+      timeLimit: this.state.timeLimit,
+      distance: this.state.distance,
+    })
+  };
 
   renderStepActions(step) {
     const { stepIndex } = this.state;
@@ -173,6 +181,8 @@ class Setup extends Component {
   }
 }
 
-export default connect(null, {
+export default connect(state => ({
+  user: state.auth.user,
+}), {
   setAppBarTitle
 })(Setup);

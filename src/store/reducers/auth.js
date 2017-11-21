@@ -1,6 +1,7 @@
 const USER_LOADING = "hci4/ui/USER_LOADING";
 const USER_LOADED = "hci4/ui/USER_LOADED";
 const SET_USER = "hci4/ui/SET_USER";
+const SET_USER_DATA = "hci4/ui/SET_USER_DATA";
 
 export function userLoading() {
   return {
@@ -18,6 +19,13 @@ export function setUser(user) {
   return {
     type: SET_USER,
     user
+  };
+}
+
+export function setUserData(userData) {
+  return {
+    type: SET_USER_DATA,
+    userData
   };
 }
 
@@ -43,6 +51,12 @@ export default function ui(state = initialState, action = {}) {
       return {
         ...state,
         user: action.user
+      };
+
+    case SET_USER_DATA:
+      return {
+        ...state,
+        userData: action.userData
       };
 
     default:
