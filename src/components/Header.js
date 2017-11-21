@@ -6,6 +6,8 @@ import { List, ListItem } from "material-ui/List";
 import Avatar from "material-ui/Avatar";
 import CloseIcon from "material-ui/svg-icons/navigation/close";
 import IconButton from "material-ui/IconButton";
+import Divider from "material-ui/Divider";
+import PactsIcon from "material-ui/svg-icons/social/group";
 import { auth } from "../Firebase";
 import { withRouter } from "react-router";
 import { openSidebar, closeSidebar } from "../store/reducers/ui";
@@ -32,6 +34,8 @@ class Header extends Component {
   handleClose = () => {
     this.props.history.goBack();
   }
+
+  handleClickPacts = () => this.props.history.push('/pacts');
 
   render() {
     const email = this.props.user && this.props.user.email;
@@ -69,7 +73,18 @@ class Header extends Component {
           open={this.props.sidebarOpen}
           onRequestChange={this.onSidebarChange}
         >
-          <List>{this.props.user && userListItem}</List>
+          <List>
+            {this.props.user && userListItem}
+          </List>
+          <Divider />
+          <List>
+            <ListItem
+              primaryText="Pacts"
+              secondaryText="# pacts active"
+              leftIcon={<PactsIcon />}
+              onClick={this.handleClickPacts}
+            />
+          </List>
         </Drawer>
       </div>
     );
