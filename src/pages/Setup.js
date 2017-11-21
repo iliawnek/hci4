@@ -7,6 +7,7 @@ import FlatButton from "material-ui/FlatButton";
 import TimePicker from "material-ui/TimePicker";
 import { Step, Stepper, StepLabel, StepContent } from "material-ui/Stepper";
 import { db } from '../Firebase';
+import { withRouter } from "react-router";
 
 class Setup extends Component {
   state = {
@@ -62,6 +63,7 @@ class Setup extends Component {
       timeLimit: this.state.timeLimit,
       distance: this.state.distance,
     })
+    this.props.history.push("/create-pact");
   };
 
   renderStepActions(step) {
@@ -185,4 +187,4 @@ export default connect(state => ({
   user: state.auth.user,
 }), {
   setAppBarTitle
-})(Setup);
+})(withRouter(Setup));
