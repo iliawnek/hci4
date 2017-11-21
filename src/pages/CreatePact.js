@@ -9,11 +9,13 @@ import SelectField from "material-ui/SelectField";
 import MenuItem from "material-ui/MenuItem";
 import Subheader from "material-ui/Subheader";
 import { db } from '../Firebase';
+import moment from 'moment';
 
 class CreatePact extends Component {
   state = {
-    invitee: '',
-    invitees: [],
+    emailToInvite: '',
+    invited: {},
+    name: '',
     frequency: 1
   }
 
@@ -27,25 +29,33 @@ class CreatePact extends Component {
   }
 
   handleInviteeChange = (event) => {
-    this.setState({invitee: event.target.value});
+    this.setState({emailToInvite: event.target.value});
   }
 
   submitInvitee = () => {
-    const { invitee, invitees } = this.state;
-    db.ref('users').orderByChild('email').equalTo(invitee).once('child_added', snapshot => {
-      if (snapshot.exists()) {
-        this.setState({
-          invitees: [...invitees, invitee],
-          invitee: ''
-        })
-      }
-    });
+    const { emailToInvite, invited } = this.state;
+    const { user } = this.props;
+    if (emailToInvite !== user.email && !Object.values(invited).includes(emailToInvite)) {
+      db.ref('users').orderByChild('email').equalTo(emailToInvite).once('child_added', snapshot => {
+        if (snapshot.exists()) {
+          const uid = snapshot.key;
+          this.setState({
+            invited: {...invited, [uid]: snapshot.val().email},
+            emailToInvite: ''
+          })
+        }
+      });
+    }
   }
 
   removeInvitee = (inviteeToRemove) => {
-    console.log(inviteeToRemove);
+    const { invited } = this.state;
+    const uidToRemove = Object.entries(invited).filter(entry => entry[1] === inviteeToRemove)[0][0];
     this.setState({
-      invitees: this.state.invitees.filter(invitee => (invitee !== inviteeToRemove))
+      invited: Object.keys(invited).reduce((newInvited, uid) => {
+        if (uid !== uidToRemove) newInvited[uid] = invited[uid];
+        return newInvited;
+      }, {})
     });
   }
 
@@ -54,10 +64,19 @@ class CreatePact extends Component {
   }
 
   createPact = () => {
-    db.ref(`pacts`).push({
-      members: [...this.state.invitees, this.props.user.email],
-      frequency: this.state.frequency
+    const newPactRef = db.ref('pacts').push();
+    const newPactId = newPactRef.key;
+    newPactRef.set({
+      members: [...Object.keys(this.state.invited), this.props.user.uid],
+      frequency: this.state.frequency,
+      startedAt: moment().toISOString(),
+      name: this.state.name
     })
+    this.props.history.push(`/pact/${newPactId}`);
+  }
+
+  handleNameChange = (event) => {
+    this.setState({name: event.target.value});
   }
 
   render() {
@@ -101,7 +120,7 @@ class CreatePact extends Component {
 
     const inviteeChips = (
       <div style={styles.chips}>
-        {this.state.invitees.map((invitee, index) => (
+        {Object.values(this.state.invited).map((invitee, index) => (
           <Chip
             key={index}
             onRequestDelete={this.removeInvitee.bind(this, invitee)}
@@ -120,7 +139,7 @@ class CreatePact extends Component {
           <div style={styles.inviteForm}>
             <TextField
               hintText="Enter an email address..."
-              value={this.state.invitee}
+              value={this.state.emailToInvite}
               onChange={this.handleInviteeChange}
               style={{flex: 1}}
             />
@@ -131,7 +150,7 @@ class CreatePact extends Component {
               />
             </div>
           </div>
-          {this.state.invitees.length > 0 && inviteeChips}
+          {this.state.invited !== {} && inviteeChips}
         </Paper>
 
         <Paper style={styles.paper}>
@@ -142,6 +161,8 @@ class CreatePact extends Component {
               floatingLabelText="Pact name"
               floatingLabelFixed
               style={styles.textField}
+              value={this.state.name}
+              onChange={this.handleNameChange}
             />
             <SelectField
               floatingLabelText="Goal"
@@ -150,12 +171,12 @@ class CreatePact extends Component {
               style={styles.textField}
             >
               <MenuItem value={1} primaryText="Run everyday" />
-              <MenuItem value={2} primaryText="Run once every 2 days" />
-              <MenuItem value={3} primaryText="Run once every 3 days" />
-              <MenuItem value={4} primaryText="Run once every 4 days" />
-              <MenuItem value={5} primaryText="Run once every 5 days" />
-              <MenuItem value={6} primaryText="Run once every 6 days" />
-              <MenuItem value={7} primaryText="Run once every 7 days" />
+              <MenuItem value={2} primaryText="Run every 2 days" />
+              <MenuItem value={3} primaryText="Run every 3 days" />
+              <MenuItem value={4} primaryText="Run every 4 days" />
+              <MenuItem value={5} primaryText="Run every 5 days" />
+              <MenuItem value={6} primaryText="Run every 6 days" />
+              <MenuItem value={7} primaryText="Run every 7 days" />
             </SelectField>
           </div>
         </Paper>
@@ -172,7 +193,9 @@ class CreatePact extends Component {
   }
 }
 
-export default connect(null, {
+export default connect(state => ({
+  user: state.auth.user
+}), {
   setAppBarTitle,
   showCloseButton,
   hideCloseButton
