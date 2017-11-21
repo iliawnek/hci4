@@ -41,24 +41,12 @@ class Header extends Component {
   }
 
   render() {
+    const uid = this.props.user && this.props.user.uid;
     const email = this.props.userData && this.props.userData.email;
     const displayName = this.props.userData && this.props.userData.displayName;
     const firstLetter = displayName ?
       displayName.charAt(0) :
       (email && email.charAt(0));
-
-    const userListItem = (
-      <ListItem
-        primaryText={displayName || email}
-        secondaryText={displayName ? email : null}
-        leftAvatar={<Avatar>{firstLetter}</Avatar>}
-        rightIconButton={
-          <IconButton onClick={this.logOut}>
-            <CloseIcon />
-          </IconButton>
-        }
-      />
-    );
 
     const closeButton = (
       <IconButton
@@ -85,7 +73,12 @@ class Header extends Component {
         onRequestChange={this.onSidebarChange}
       >
         <List>
-          {userListItem}
+          {createSidebarLink({
+            to: `/user/${uid}`,
+            primaryText: displayName || email,
+            secondaryText: displayName ? email : null,
+            leftAvatar: <Avatar>{firstLetter}</Avatar>
+          })}
         </List>
         <Divider/>
         <List>

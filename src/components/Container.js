@@ -7,6 +7,7 @@ import Login from "../pages/Login";
 import Pacts from "../pages/Pacts";
 import Setup from "../pages/Setup";
 import CreatePact from '../pages/CreatePact'
+import User from "../pages/User";
 import { BrowserRouter as Router } from "react-router-dom";
 import Header from "./Header";
 import { grey100 } from "material-ui/styles/colors";
@@ -60,6 +61,7 @@ class Container extends Component {
             <Route path="/pacts" component={Pacts} />
             <Route path="/setup" component={Setup} />
             <Route path="/create-pact" component={CreatePact} />
+            <Route path="/user/:uid" component={User} />
           </div>
         </div>
       </Router>
