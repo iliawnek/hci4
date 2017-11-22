@@ -3,9 +3,12 @@ import { connect } from "react-redux";
 import { setAppBarTitle } from "../store/reducers/ui";
 import PactCard from "../components/PactCard";
 import FloatingActionButton from "material-ui/FloatingActionButton";
-import AddIcon from 'material-ui/svg-icons/content/add';
-import { withRouter } from 'react-router';
-import { db } from '../Firebase';
+import AddIcon from "material-ui/svg-icons/content/add";
+import { withRouter } from "react-router";
+import { db } from "../Firebase";
+import { Tabs, Tab } from "material-ui/Tabs";
+import RunIcon from "material-ui/svg-icons/maps/directions-run";
+import HistoryIcon from "material-ui/svg-icons/action/history";
 
 class Pacts extends Component {
   state = {
@@ -25,43 +28,48 @@ class Pacts extends Component {
     }
   }
 
-  getPacts = (pactsObject) => {
+  getPacts = pactsObject => {
     const pactIds = Object.keys(pactsObject);
     const { pacts } = this.state;
     if (pactIds.length !== pacts.length) {
-      this.setState({pacts: []})
+      this.setState({ pacts: [] });
       pactIds.forEach(pactId => {
-        db.ref(`pacts/${pactId}`).once('value', snapshot => {
-          const pactObject = {...snapshot.val(), pactId};
-          this.setState({pacts: [...pacts, pactObject]});
+        db.ref(`pacts/${pactId}`).once("value", snapshot => {
+          const pactObject = { ...snapshot.val(), pactId };
+          this.setState({ pacts: [...pacts, pactObject] });
         });
       });
     }
-  }
+  };
 
   handleAddButtonClick = () => {
-    this.props.history.push('/create-pact');
+    this.props.history.push("/create-pact");
   };
 
   render() {
     const styles = {
       pacts: {
-        marginBottom: 90,
+        marginBottom: 90
       },
       addButton: {
-        position: 'fixed',
+        position: "fixed",
         bottom: 20,
-        right: 20,
+        right: 20
       }
     };
 
     const pactCards = this.state.pacts.map(pact => (
       <PactCard key={pact.pactId} {...pact} />
-    ))
+    ));
 
     return (
-      <div style={styles.pacts}>
-        {/*<PactCard
+      <div style={{ paddingTop: 72 }}>
+        <Tabs style={{ position: "fixed", top: 64, zIndex: 2, width: "100%" }} secondary>
+          <Tab icon={<RunIcon />} label="Active" />
+          <Tab icon={<HistoryIcon />} label="Completed" />
+        </Tabs>
+        <div style={styles.pacts}>
+          {/*<PactCard
           title="Office charity run"
           endDate="18/11/17"
           distance="5"
@@ -77,20 +85,24 @@ class Pacts extends Component {
           runs="2"
           numberParticipants={3}
         />*/}
-        {pactCards}
-        <FloatingActionButton
-          style={styles.addButton}
-          onClick={this.handleAddButtonClick}
-        >
-          <AddIcon />
-        </FloatingActionButton>
+          {pactCards}
+          <FloatingActionButton
+            style={styles.addButton}
+            onClick={this.handleAddButtonClick}
+          >
+            <AddIcon />
+          </FloatingActionButton>
+        </div>
       </div>
     );
   }
 }
 
-export default connect(state => ({
-  userData: state.auth.userData,
-}), {
-  setAppBarTitle
-})(withRouter(Pacts));
+export default connect(
+  state => ({
+    userData: state.auth.userData
+  }),
+  {
+    setAppBarTitle
+  }
+)(withRouter(Pacts));
