@@ -64,14 +64,22 @@ class CreatePact extends Component {
   }
 
   createPact = () => {
+    const {invited, frequency, name} = this.state;
+    const members = [...Object.keys(invited), this.props.user.uid];
+    // create pact
     const newPactRef = db.ref('pacts').push();
     const newPactId = newPactRef.key;
     newPactRef.set({
-      members: [...Object.keys(this.state.invited), this.props.user.uid],
-      frequency: this.state.frequency,
+      members,
+      frequency,
       startedAt: moment().toISOString(),
-      name: this.state.name
+      name,
     })
+    // add pact to each member's user data
+    members.forEach(uid => {
+      db.ref(`users/${uid}/pacts/${newPactId}`).set(true);
+    });
+    // redirect to new pact page
     this.props.history.push(`/pact/${newPactId}`);
   }
 

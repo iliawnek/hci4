@@ -5,10 +5,38 @@ import PactCard from "../components/PactCard";
 import FloatingActionButton from "material-ui/FloatingActionButton";
 import AddIcon from 'material-ui/svg-icons/content/add';
 import { withRouter } from 'react-router';
+import { db } from '../Firebase';
 
 class Pacts extends Component {
+  state = {
+    pacts: []
+  };
+
   componentWillMount() {
     this.props.setAppBarTitle("Pacts");
+    if (this.props.userData && this.props.userData.pacts) {
+      this.getPacts(this.props.userData.pacts);
+    }
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.userData && nextProps.userData.pacts) {
+      this.getPacts(nextProps.userData.pacts);
+    }
+  }
+
+  getPacts = (pactsObject) => {
+    const pactIds = Object.keys(pactsObject);
+    const { pacts } = this.state;
+    if (pactIds.length !== pacts.length) {
+      this.setState({pacts: []})
+      pactIds.forEach(pactId => {
+        db.ref(`pacts/${pactId}`).once('value', snapshot => {
+          const pactObject = {...snapshot.val(), pactId};
+          this.setState({pacts: [...pacts, pactObject]});
+        });
+      });
+    }
   }
 
   handleAddButtonClick = () => {
@@ -27,9 +55,13 @@ class Pacts extends Component {
       }
     };
 
+    const pactCards = this.state.pacts.map(pact => (
+      <PactCard key={pact.pactId} {...pact} />
+    ))
+
     return (
       <div style={styles.pacts}>
-        <PactCard
+        {/*<PactCard
           title="Office charity run"
           endDate="18/11/17"
           distance="5"
@@ -44,7 +76,8 @@ class Pacts extends Component {
           minutes="30"
           runs="2"
           numberParticipants={3}
-        />
+        />*/}
+        {pactCards}
         <FloatingActionButton
           style={styles.addButton}
           onClick={this.handleAddButtonClick}
@@ -56,6 +89,8 @@ class Pacts extends Component {
   }
 }
 
-export default connect(null, {
+export default connect(state => ({
+  userData: state.auth.userData,
+}), {
   setAppBarTitle
 })(withRouter(Pacts));
