@@ -42,7 +42,7 @@ class PactCard extends Component {
     }
 
     return (
-      <Card style={{ marginBottom: 8 }}>
+      <Card style={{ margin: 8 }}>
         <CardTitle
           title={this.props.title}
           subtitle={
