@@ -8,6 +8,7 @@ import RaisedButton from "material-ui/RaisedButton";
 import SelectField from "material-ui/SelectField";
 import MenuItem from "material-ui/MenuItem";
 import Subheader from "material-ui/Subheader";
+import DatePicker from "material-ui/DatePicker";
 import { db } from '../Firebase';
 import moment from 'moment';
 
@@ -16,7 +17,9 @@ class CreatePact extends Component {
     emailToInvite: '',
     invited: {},
     name: '',
-    frequency: 1
+    frequency: 3,
+    runCount: '',
+    endsOn: null
   }
 
   componentWillMount() {
@@ -60,11 +63,18 @@ class CreatePact extends Component {
   }
 
   handleFrequencyChange = (event, index, value) => {
-    this.setState({frequency: value});
+    const frequency = value;
+    this.setState({frequency});
+    if (this.state.runCount !== '') {
+      const daysUntilEndDate = frequency * this.state.runCount;
+      const endsOn = moment(this.props.today).add(daysUntilEndDate, 'days').toDate();
+      this.setState({endsOn});
+    }
   }
 
   createPact = () => {
-    const {invited, frequency, name} = this.state;
+    const {invited, frequency, name, runCount, endsOn} = this.state;
+    const {today} = this.props;
     const members = [...Object.keys(invited), this.props.user.uid];
     // create pact
     const newPactRef = db.ref('pacts').push();
@@ -72,7 +82,9 @@ class CreatePact extends Component {
     newPactRef.set({
       members,
       frequency,
-      startedAt: moment().toISOString(),
+      startsOn: today,
+      runCount,
+      endsOn: moment(endsOn).format('YYYY-MM-DD'),
       name,
     })
     // add pact to each member's user data
@@ -87,6 +99,34 @@ class CreatePact extends Component {
     this.setState({name: event.target.value});
   }
 
+  handleRunCountChange = (event) => {
+    const runCountString = event.target.value;
+    if (runCountString === '') this.setState({runCount: '', endsOn: null});
+    else {
+      const runCount = parseInt(runCountString);
+      if (runCount <= 100 && runCount > 0) {
+        const daysUntilEndDate = this.state.frequency * runCount;
+        const endsOn = moment(this.props.today).add(daysUntilEndDate, 'days').toDate();
+        this.setState({runCount, endsOn});
+      }
+    }
+  }
+
+  handleEndDateChange = (event, date) => {
+    const daysUntilEndDate = moment(date).diff(this.props.today, 'days');
+    this.setState({
+      endsOn: date,
+      runCount: Math.floor(daysUntilEndDate / this.state.frequency)
+    });
+  }
+
+  shouldDisableDate = (day) => {
+    const dateDoesntAlignWithFrequency = (
+      (moment(day).diff(this.props.today, 'days') % this.state.frequency) !== 0
+    );
+    return dateDoesntAlignWithFrequency;
+  }
+
   render() {
     const styles = {
       createPact: {
@@ -97,7 +137,8 @@ class CreatePact extends Component {
         display: 'flex',
         flexDirection: 'row-reverse',
         marginTop: 16,
-        marginRight: 16
+        marginRight: 16,
+        marginBottom: 16
       },
       paper: {
         marginBottom: 16,
@@ -121,8 +162,20 @@ class CreatePact extends Component {
       detailsForm: {
         margin: '0 16px'
       },
-      textField: {
+      field: {
         width: '100%'
+      },
+      pactDeadlineForm: {
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center'
+      },
+      or: {
+        margin: '0 16px',
+        color: 'rgba(0,0,0,0.25)'
+      },
+      pactDeadlineField: {
+        width: '10px'
       }
     }
 
@@ -139,6 +192,13 @@ class CreatePact extends Component {
         ))}
       </div>
     );
+
+    const readyToCreate = (
+      Object.keys(this.state.invited).length > 0 &&
+      this.state.name.length > 0 &&
+      this.state.runCount !== '' &&
+      this.state.endsOn !== null
+    )
 
     return (
       <div>
@@ -158,34 +218,56 @@ class CreatePact extends Component {
               />
             </div>
           </div>
-          {this.state.invited !== {} && inviteeChips}
+          {(Object.keys(this.state.invited).length > 0) && inviteeChips}
         </Paper>
 
         <Paper style={styles.paper}>
-          <Subheader>Pact details</Subheader>
+          <Subheader>Pact name</Subheader>
           <div style={styles.detailsForm}>
             <TextField
-              hintText="What should the pact be called?"
-              floatingLabelText="Pact name"
-              floatingLabelFixed
-              style={styles.textField}
+              hintText="Choose a name..."
+              style={styles.field}
               value={this.state.name}
               onChange={this.handleNameChange}
             />
+          </div>
+        </Paper>
+
+        <Paper style={styles.paper}>
+          <Subheader>Pact goal</Subheader>
+          <div style={styles.detailsForm}>
             <SelectField
-              floatingLabelText="Goal"
+              floatingLabelText="Run frequency"
+              floatingLabelFixed
               value={this.state.frequency}
               onChange={this.handleFrequencyChange}
-              style={styles.textField}
+              style={styles.field}
             >
-              <MenuItem value={1} primaryText="Run everyday" />
-              <MenuItem value={2} primaryText="Run every 2 days" />
-              <MenuItem value={3} primaryText="Run every 3 days" />
-              <MenuItem value={4} primaryText="Run every 4 days" />
-              <MenuItem value={5} primaryText="Run every 5 days" />
-              <MenuItem value={6} primaryText="Run every 6 days" />
-              <MenuItem value={7} primaryText="Run every 7 days" />
+              <MenuItem value={1} primaryText="Everyday" />
+              <MenuItem value={2} primaryText="Every 2 days" />
+              <MenuItem value={3} primaryText="Every 3 days" />
+              <MenuItem value={4} primaryText="Every 4 days" />
+              <MenuItem value={5} primaryText="Every 5 days" />
+              <MenuItem value={6} primaryText="Every 6 days" />
+              <MenuItem value={7} primaryText="Every 7 days" />
             </SelectField>
+            <TextField
+              floatingLabelText="Number of runs required"
+              floatingLabelFixed
+              style={styles.field}
+              type="number"
+              value={this.state.runCount}
+              onChange={this.handleRunCountChange}
+            />
+            <DatePicker
+              floatingLabelText="Ends on"
+              floatingLabelFixed
+              textFieldStyle={styles.field}
+              value={this.state.endsOn}
+              onChange={this.handleEndDateChange}
+              minDate={moment(this.props.today).add(this.state.frequency, 'days').toDate()}
+              shouldDisableDate={this.shouldDisableDate}
+            />
           </div>
         </Paper>
 
@@ -194,6 +276,7 @@ class CreatePact extends Component {
             label="Create"
             primary
             onClick={this.createPact}
+            disabled={!readyToCreate}
           />
         </div>
       </div>
@@ -202,7 +285,8 @@ class CreatePact extends Component {
 }
 
 export default connect(state => ({
-  user: state.auth.user
+  user: state.auth.user,
+  today: state.date.today
 }), {
   setAppBarTitle,
   showCloseButton,

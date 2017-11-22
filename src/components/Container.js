@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import { auth, db } from "../Firebase";
 import { userLoading, userLoaded, setUser, setUserData } from "../store/reducers/auth";
+import { setToday } from "../store/reducers/date";
 import { Route } from "react-router-dom";
 import Login from "../pages/Login";
 import Pacts from "../pages/Pacts";
@@ -16,6 +17,8 @@ import { grey100 } from "material-ui/styles/colors";
 class Container extends Component {
   componentWillMount() {
     this.props.userLoading();
+
+    // get currently-authenticated user
     auth.onAuthStateChanged(user => {
       this.props.userLoaded();
       this.props.setUser(user);
@@ -35,6 +38,11 @@ class Container extends Component {
           this.props.setUserData(snapshot.val());
         });
       }
+    });
+
+    // get today from database
+    db.ref('date').on('value', snapshot => {
+      this.props.setToday(snapshot.val());
     });
   }
 
@@ -74,5 +82,6 @@ export default connect(null, {
   userLoading,
   userLoaded,
   setUser,
-  setUserData
+  setUserData,
+  setToday
 })(Container);
