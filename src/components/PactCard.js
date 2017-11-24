@@ -5,18 +5,44 @@ import { NavigationExpandMore } from "material-ui/svg-icons";
 import Chip from "material-ui/Chip";
 import Avatar from "material-ui/Avatar";
 import Moment from "react-moment";
+import {db} from '../Firebase';
 
 class PactCard extends Component {
-  state = { users: [] };
+  state = {
+    names: null
+  }
 
   componentDidMount() {
-    fetch("https://randomuser.me/api/?results=" + this.props.numberParticipants)
-      .then(res => res.json())
-      .then(users => this.setState({ users: users.results }));
+    this.getUserDisplayNames(this.props.members)
+  }
+
+  getUserDisplayNames = (uids) => {
+    db.ref('users').once('value', snapshot => {
+      const users = snapshot.val()
+      this.setState({
+        names: uids.map(uid => users[uid].displayName)
+      })
+    })
   }
 
   render() {
     const styles = {
+      card: {
+        marginBottom: 8,
+      },
+      metrics: {
+        display: 'flex',
+        justifyContent: 'space-evenly',
+        paddingBottom: 32,
+      },
+      chip: {
+        margin: 4,
+      },
+      chips: {
+        display: 'flex',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+      },
       textCenter: { textAlign: "center" },
       display2: { fontSize: 45 },
       svgIconContainer: {
@@ -26,78 +52,45 @@ class PactCard extends Component {
       }
     };
 
-    var userChips = [];
-    for (var i in this.state.users) {
-      var user = this.state.users[i];
-      userChips.push(
-        <Chip key={i} style={{ margin: 4 }}>
-          <Avatar src={user.picture.medium} />
-          {user.name.first.charAt(0).toUpperCase() +
-            user.name.first.slice(1) +
-            " " +
-            user.name.last.charAt(0).toUpperCase() +
-            user.name.last.slice(1)}
-        </Chip>
-      );
-    }
+    const chips = this.state.names && this.state.names.map((name, index) => (
+      <Chip
+        key={index}
+        style={styles.chip}
+      >
+        {name}
+      </Chip>
+    ));
 
     return (
-      <Card style={{ margin: 8 }}>
+      <Card style={styles.card}>
         <CardTitle
-          title={this.props.title}
+          title={this.props.name}
           subtitle={
             <span>
-              <Moment parse="DD/MM/YY" fromNow ago>
-                {this.props.endDate}
+              <Moment parse="YYYY-MM-DD" fromNow ago>
+                {this.props.endsOn}
               </Moment>{" "}
               remaining
             </span>
           }
         />
         <CardText>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-evenly",
-              paddingBottom: 32
-            }}
-          >
+          <div style={styles.metrics}>
             <div style={styles.textCenter}>
-              <span style={styles.display2}>{this.props.distance}</span>
-              <br />km
+              <span style={styles.display2}>{this.props.frequency}</span>
+              <br />days per run
             </div>
             <div style={styles.textCenter}>
-              <span style={styles.display2}>{this.props.minutes}</span>
-              <br />minutes
-            </div>
-            <div style={styles.textCenter}>
-              <span style={styles.display2}>{this.props.runs}</span>
+              <span style={styles.display2}>{this.props.runCount}</span>
               <br />
-              {"time" + (this.props.runs > 1 ? "s" : "")}
+              {"run" + (this.props.runs > 1 ? "s" : "")}
             </div>
           </div>
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              justifyContent: "center"
-            }}
-          >
-            {userChips}
+
+          <div style={styles.chips}>
+            {chips}
           </div>
         </CardText>
-        <CardActions>
-          <FlatButton
-            label={
-              <span>
-                Show progress
-                <div style={styles.svgIconContainer}>
-                  <NavigationExpandMore />
-                </div>
-              </span>
-            }
-          />
-        </CardActions>
       </Card>
     );
   }
