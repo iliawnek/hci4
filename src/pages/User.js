@@ -2,7 +2,8 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import { setAppBarTitle } from "../store/reducers/ui";
 import { withRouter } from 'react-router';
-import { db } from '../Firebase';
+import { db, auth } from '../Firebase';
+import RaisedButton from 'material-ui/RaisedButton';
 
 class User extends Component {
   state = {
@@ -42,6 +43,11 @@ class User extends Component {
     }
   }
 
+  signOut = () => {
+    auth.signOut()
+    this.props.history.push('/')
+  }
+
   render() {
     const styles = {
       user: {}
@@ -49,6 +55,10 @@ class User extends Component {
 
     return (
       <div style={styles.user}>
+        <RaisedButton
+          label="Sign out"
+          onClick={this.signOut}
+        />
       </div>
     );
   }
