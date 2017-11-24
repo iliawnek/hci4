@@ -3,6 +3,7 @@ import { connect } from "react-redux";
 import { setAppBarTitle } from "../store/reducers/ui";
 import LoginForm from "../components/LoginForm";
 import { withRouter } from "react-router";
+import Card from 'material-ui/Card';
 
 class Login extends Component {
   componentWillMount() {
@@ -26,9 +27,9 @@ class Login extends Component {
     };
 
     return (
-      <div style={styles.login}>
+      <Card style={styles.login}>
         <LoginForm />
-      </div>
+      </Card>
     );
   }
 }
