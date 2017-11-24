@@ -4,7 +4,9 @@ import {reactReduxFirebase} from 'react-redux-firebase';
 import firebase from 'firebase';
 
 const createStoreWithFirebase = compose(
-  reactReduxFirebase(firebase, {}),
+  reactReduxFirebase(firebase, {
+    userProfile: 'users',
+  }),
 )(createStore)
 
 const store = createStoreWithFirebase(

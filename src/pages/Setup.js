@@ -6,8 +6,9 @@ import RaisedButton from "material-ui/RaisedButton";
 import FlatButton from "material-ui/FlatButton";
 import TimePicker from "material-ui/TimePicker";
 import { Step, Stepper, StepLabel, StepContent } from "material-ui/Stepper";
-import { db } from '../Firebase';
 import { withRouter } from "react-router";
+import { firebaseConnect } from "react-redux-firebase";
+import { compose } from 'redux';
 
 class Setup extends Component {
   state = {
@@ -57,13 +58,12 @@ class Setup extends Component {
   };
 
   finish = () => {
-    const { uid } = this.props.user
-    db.ref(`users/${uid}`).update({
+    this.props.firebase.updateProfile({
       displayName: this.state.displayName,
       timeLimit: this.state.timeLimit,
       distance: this.state.distance,
-    })
-    this.props.history.push("/create-pact");
+    });
+    // this.props.history.push("/create-pact");
   };
 
   renderStepActions(step) {
@@ -183,8 +183,10 @@ class Setup extends Component {
   }
 }
 
-export default connect(state => ({
-  user: state.auth.user,
-}), {
-  setAppBarTitle
-})(withRouter(Setup));
+export default compose(
+  connect(null, {
+    setAppBarTitle
+  }),
+  firebaseConnect(),
+  withRouter
+)(Setup);

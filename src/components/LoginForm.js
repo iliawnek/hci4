@@ -1,10 +1,10 @@
 import React, { Component } from "react";
 import TextField from "material-ui/TextField";
 import RaisedButton from "material-ui/RaisedButton";
-import { auth } from "../Firebase";
 import { withRouter } from "react-router";
+import { firebaseConnect } from "react-redux-firebase";
 import { connect } from "react-redux";
-import { userLoading } from "../store/reducers/auth";
+import { compose } from "redux";
 
 class LoginForm extends Component {
   state = {
@@ -13,29 +13,21 @@ class LoginForm extends Component {
   };
 
   register = async () => {
-    this.props.userLoading();
-    try {
-      await auth.createUserWithEmailAndPassword(
-        this.state.email,
-        this.state.password
-      );
-      this.props.history.push("/setup");
-    } catch (error) {
-      console.log(error);
-    }
+    await this.props.firebase.auth().createUserWithEmailAndPassword(
+      this.state.email,
+      this.state.password
+    );
+    this.props.firebase.updateProfile({
+      email: this.props.auth.email,
+    });
+    this.props.history.push("/setup");
   };
 
-  login = async () => {
-    this.props.userLoading();
-    try {
-      await auth.signInWithEmailAndPassword(
-        this.state.email,
-        this.state.password
-      );
-      this.props.history.push("/pacts");
-    } catch (error) {
-      console.log(error);
-    }
+  login = () => {
+    this.props.firebase.login({
+      email: this.state.email,
+      password: this.state.password
+    });
   };
 
   render() {
@@ -72,6 +64,10 @@ class LoginForm extends Component {
   }
 }
 
-export default connect(null, {
-  userLoading
-})(withRouter(LoginForm));
+export default compose(
+  withRouter,
+  firebaseConnect(),
+  connect(({firebase: {auth}}) => ({
+    auth
+  }))
+)(LoginForm);
