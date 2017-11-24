@@ -24,7 +24,7 @@ class CreatePact extends Component {
 
   componentWillMount() {
     this.props.setAppBarTitle("Create pact");
-    this.props.showCloseButton();
+    this.props.showCloseButton('/pacts');
   }
 
   componentWillUnmount() {

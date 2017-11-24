@@ -32,7 +32,7 @@ class Header extends Component {
   };
 
   handleClose = () => {
-    this.props.history.goBack();
+    this.props.history.push(this.props.closeTo);
   }
 
   linkFromSidebar = (to) => {
@@ -113,7 +113,8 @@ export default withRouter(
       user: state.auth.user,
       userData: state.auth.userData,
       sidebarOpen: state.ui.sidebarOpen,
-      closeButtonShown: state.ui.closeButtonShown
+      closeButtonShown: state.ui.closeButtonShown,
+      closeTo: state.ui.closeTo,
     }),
     {
       openSidebar,

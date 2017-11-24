@@ -23,9 +23,10 @@ export function closeSidebar() {
   };
 }
 
-export function showCloseButton() {
+export function showCloseButton(closeTo) {
   return {
-    type: SHOW_CLOSE_BUTTON
+    type: SHOW_CLOSE_BUTTON,
+    closeTo
   };
 }
 
@@ -38,7 +39,8 @@ export function hideCloseButton() {
 const initialState = {
   appBarTitle: "",
   sidebarOpen: false,
-  closeButtonShown: false
+  closeButtonShown: false,
+  closeTo: null
 };
 
 export default function ui(state = initialState, action = {}) {
@@ -64,13 +66,15 @@ export default function ui(state = initialState, action = {}) {
     case SHOW_CLOSE_BUTTON:
       return {
         ...state,
-        closeButtonShown: true
+        closeButtonShown: true,
+        closeTo: action.closeTo
       };
 
     case HIDE_CLOSE_BUTTON:
       return {
         ...state,
-        closeButtonShown: false
+        closeButtonShown: false,
+        closeTo: null
       };
 
     default:
