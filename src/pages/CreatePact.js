@@ -82,7 +82,11 @@ class CreatePact extends Component {
   createPact = () => {
     const {invited, frequency, name, runCount, endsOn} = this.state;
     const {today, firebase, history, currentUid} = this.props;
-    const members = [...Object.values(invited), currentUid];
+    const members = {}
+    const memberUids = [...Object.values(invited), currentUid];
+    memberUids.forEach(uid => {
+      members[uid] = true
+    })
     // create pact
     const newPactRef = firebase.ref('pacts').push();
     const newPactId = newPactRef.key;
@@ -95,7 +99,7 @@ class CreatePact extends Component {
       name,
     })
     // add pact to each member's user data
-    members.forEach(uid => {
+    memberUids.forEach(uid => {
       firebase.ref(`users/${uid}/pacts/${newPactId}`).set(true);
     });
     // redirect to new pact page
@@ -110,7 +114,7 @@ class CreatePact extends Component {
     const runCountString = event.target.value;
     if (runCountString === '') this.setState({runCount: '', endsOn: null});
     else {
-      const runCount = parseInt(runCountString);
+      const runCount = parseInt(runCountString, 10);
       if (runCount <= 100 && runCount > 0) {
         const daysUntilEndDate = this.state.frequency * runCount;
         const endsOn = moment(this.props.today).add(daysUntilEndDate, 'days').toDate();

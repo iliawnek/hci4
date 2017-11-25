@@ -1,31 +1,12 @@
 import React, { Component } from "react";
-import { Card, CardActions, CardTitle, CardText } from "material-ui/Card";
-import FlatButton from "material-ui/FlatButton";
-import { NavigationExpandMore } from "material-ui/svg-icons";
+import { Card, CardTitle, CardText } from "material-ui/Card";
 import Chip from "material-ui/Chip";
-import Avatar from "material-ui/Avatar";
 import Moment from "react-moment";
-import {db} from '../Firebase';
 
 class PactCard extends Component {
-  state = {
-    names: null
-  }
-
-  componentDidMount() {
-    this.getUserDisplayNames(this.props.members)
-  }
-
-  getUserDisplayNames = (uids) => {
-    db.ref('users').once('value', snapshot => {
-      const users = snapshot.val()
-      this.setState({
-        names: uids.map(uid => users[uid].displayName)
-      })
-    })
-  }
-
   render() {
+    const {name, endsOn, frequency, runCount, members} = this.props;
+
     const styles = {
       card: {
         marginBottom: 8,
@@ -52,23 +33,23 @@ class PactCard extends Component {
       }
     };
 
-    const chips = this.state.names && this.state.names.map((name, index) => (
+    const chips = members && Object.entries(members).map(([uid, user]) => (
       <Chip
-        key={index}
+        key={uid}
         style={styles.chip}
       >
-        {name}
+        {user.displayName}
       </Chip>
     ));
 
     return (
       <Card style={styles.card}>
         <CardTitle
-          title={this.props.name}
+          title={name}
           subtitle={
             <span>
               <Moment parse="YYYY-MM-DD" fromNow ago>
-                {this.props.endsOn}
+                {endsOn}
               </Moment>{" "}
               remaining
             </span>
@@ -77,13 +58,13 @@ class PactCard extends Component {
         <CardText>
           <div style={styles.metrics}>
             <div style={styles.textCenter}>
-              <span style={styles.display2}>{this.props.frequency}</span>
+              <span style={styles.display2}>{frequency}</span>
               <br />days per run
             </div>
             <div style={styles.textCenter}>
-              <span style={styles.display2}>{this.props.runCount}</span>
+              <span style={styles.display2}>{runCount}</span>
               <br />
-              {"run" + (this.props.runs > 1 ? "s" : "")}
+              {"run" + (runCount > 1 ? "s" : "")}
             </div>
           </div>
 
