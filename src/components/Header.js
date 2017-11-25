@@ -8,19 +8,12 @@ import CloseIcon from "material-ui/svg-icons/navigation/close";
 import IconButton from "material-ui/IconButton";
 import Divider from "material-ui/Divider";
 import PactsIcon from "material-ui/svg-icons/social/group";
-import { auth } from "../Firebase";
 import { withRouter } from "react-router";
 import { openSidebar, closeSidebar } from "../store/reducers/ui";
-import { userLoading } from "../store/reducers/auth";
+import { compose } from 'redux';
+import { firebaseConnect } from 'react-redux-firebase';
 
 class Header extends Component {
-  logOut = async () => {
-    this.props.userLoading();
-    await auth.signOut();
-    this.props.history.push("/");
-    this.props.closeSidebar();
-  };
-
   onSidebarChange = open => {
     open ? this.props.openSidebar() : this.props.closeSidebar();
   };
@@ -41,9 +34,8 @@ class Header extends Component {
   }
 
   render() {
-    const uid = this.props.user && this.props.user.uid;
-    const email = this.props.userData && this.props.userData.email;
-    const displayName = this.props.userData && this.props.userData.displayName;
+    const {uid, email, displayName} = this.props;
+
     const firstLetter = displayName ?
       displayName.charAt(0) :
       (email && email.charAt(0));
@@ -97,29 +89,31 @@ class Header extends Component {
         <AppBar
           title={this.props.title}
           onLeftIconButtonTouchTap={this.toggleSidebar}
-          showMenuIconButton={this.props.user !== null}
+          showMenuIconButton={uid !== null}
           iconElementRight={this.props.closeButtonShown ? closeButton : null}
         />
-        {this.props.user && sidebar}
+        {uid && sidebar}
       </div>
     );
   }
 }
 
-export default withRouter(
+export default compose(
   connect(
     state => ({
       title: state.ui.appBarTitle,
-      user: state.auth.user,
-      userData: state.auth.userData,
       sidebarOpen: state.ui.sidebarOpen,
       closeButtonShown: state.ui.closeButtonShown,
       closeTo: state.ui.closeTo,
+      uid: state.firebase.auth && state.firebase.auth.uid,
+      email: state.firebase.auth && state.firebase.auth.email,
+      displayName: state.firebase.profile && state.firebase.profile.displayName,
     }),
     {
       openSidebar,
-      closeSidebar,
-      userLoading
+      closeSidebar
     }
-  )(Header)
-);
+  ),
+  withRouter,
+  firebaseConnect()
+)(Header);
