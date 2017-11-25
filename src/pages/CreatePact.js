@@ -9,8 +9,9 @@ import SelectField from "material-ui/SelectField";
 import MenuItem from "material-ui/MenuItem";
 import Subheader from "material-ui/Subheader";
 import DatePicker from "material-ui/DatePicker";
-import { db } from '../Firebase';
 import moment from 'moment';
+import { firebaseConnect } from 'react-redux-firebase';
+import { compose } from 'redux';
 
 class CreatePact extends Component {
   state = {
@@ -36,27 +37,33 @@ class CreatePact extends Component {
   }
 
   submitInvitee = () => {
+    const { users } = this.props;
+    const uidsByEmail = {}
+    Object.entries(users).forEach(([uid, user]) => {
+      uidsByEmail[user.email] = uid
+    })
+
     const { emailToInvite, invited } = this.state;
-    const { user } = this.props;
-    if (emailToInvite !== user.email && !Object.values(invited).includes(emailToInvite)) {
-      db.ref('users').orderByChild('email').equalTo(emailToInvite).once('child_added', snapshot => {
-        if (snapshot.exists()) {
-          const uid = snapshot.key;
-          this.setState({
-            invited: {...invited, [uid]: snapshot.val().email},
-            emailToInvite: ''
-          })
-        }
-      });
+    const { currentEmail } = this.props;
+
+    const notCurrentUser = (emailToInvite !== currentEmail)
+    const notAlreadyInvited = !invited[emailToInvite]
+    const isARealUser = uidsByEmail[emailToInvite]
+
+    if (isARealUser && notAlreadyInvited && notCurrentUser) {
+      invited[emailToInvite] = uidsByEmail[emailToInvite]
+      this.setState({
+        invited,
+        emailToInvite: '',
+      })
     }
   }
 
   removeInvitee = (inviteeToRemove) => {
     const { invited } = this.state;
-    const uidToRemove = Object.entries(invited).filter(entry => entry[1] === inviteeToRemove)[0][0];
     this.setState({
-      invited: Object.keys(invited).reduce((newInvited, uid) => {
-        if (uid !== uidToRemove) newInvited[uid] = invited[uid];
+      invited: Object.keys(invited).reduce((newInvited, email) => {
+        if (email !== inviteeToRemove) newInvited[email] = invited[email];
         return newInvited;
       }, {})
     });
@@ -74,10 +81,10 @@ class CreatePact extends Component {
 
   createPact = () => {
     const {invited, frequency, name, runCount, endsOn} = this.state;
-    const {today} = this.props;
-    const members = [...Object.keys(invited), this.props.user.uid];
+    const {today, firebase, history, currentUid} = this.props;
+    const members = [...Object.values(invited), currentUid];
     // create pact
-    const newPactRef = db.ref('pacts').push();
+    const newPactRef = firebase.ref('pacts').push();
     const newPactId = newPactRef.key;
     newPactRef.set({
       members,
@@ -89,10 +96,10 @@ class CreatePact extends Component {
     })
     // add pact to each member's user data
     members.forEach(uid => {
-      db.ref(`users/${uid}/pacts/${newPactId}`).set(true);
+      firebase.ref(`users/${uid}/pacts/${newPactId}`).set(true);
     });
     // redirect to new pact page
-    this.props.history.push(`/pact/${newPactId}`);
+    history.push(`/pact/${newPactId}`);
   }
 
   handleNameChange = (event) => {
@@ -181,7 +188,7 @@ class CreatePact extends Component {
 
     const inviteeChips = (
       <div style={styles.chips}>
-        {Object.values(this.state.invited).map((invitee, index) => (
+        {Object.keys(this.state.invited).map((invitee, index) => (
           <Chip
             key={index}
             onRequestDelete={this.removeInvitee.bind(this, invitee)}
@@ -284,11 +291,21 @@ class CreatePact extends Component {
   }
 }
 
-export default connect(state => ({
-  user: state.auth.user,
-  today: state.date.today
-}), {
-  setAppBarTitle,
-  showCloseButton,
-  hideCloseButton
-})(CreatePact);
+export default compose(
+  connect(
+    state => ({
+      users: state.firebase.data.users,
+      currentEmail: state.firebase.auth.email,
+      currentUid: state.firebase.auth.uid,
+      today: state.firebase.data.today,
+    }), {
+      setAppBarTitle,
+      showCloseButton,
+      hideCloseButton
+    }
+  ),
+  firebaseConnect([
+    'users',
+    'today',
+  ]),
+)(CreatePact);
