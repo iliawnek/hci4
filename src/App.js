@@ -12,7 +12,7 @@ import Setup from "./pages/Setup";
 import Pacts from "./pages/Pacts";
 import CreatePact from './pages/CreatePact'
 import User from "./pages/User";
-// import Pact from "./pages/Pact";
+import Pact from "./pages/Pact";
 
 class App extends Component {
   render() {
@@ -26,7 +26,7 @@ class App extends Component {
               <Route path="/pacts" component={Pacts} />
               <Route path="/create-pact" component={CreatePact} />
               <Route path="/user/:uid" component={User} />
-              {/*<Route path="/pact/:pactId" component={Pact} />*/}
+              <Route path="/pact/:pactId" component={Pact} />
             </Container>
           </MuiThemeProvider>
         </BrowserRouter>

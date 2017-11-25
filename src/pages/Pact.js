@@ -2,18 +2,15 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import { setAppBarTitle } from "../store/reducers/ui";
 import { withRouter } from 'react-router';
-import { db } from '../Firebase';
+import { firebaseConnect, populate } from 'react-redux-firebase';
+import { compose } from 'redux';
 
 class Pact extends Component {
-  state = {
-    pact: null
-  }
-
-  componentWillMount() {
-    db.ref(`pacts/${this.props.match.params.pactId}`).on('value', snapshot => {
-      this.setState({pact: snapshot.val()});
-      this.props.setAppBarTitle(snapshot.val().name);
-    });
+  componentWillReceiveProps(nextProps) {
+    console.log(nextProps.pact)
+    if (!this.props.pact && nextProps.pact) {
+      this.props.setAppBarTitle(nextProps.pact.name);
+    }
   }
 
   render() {
@@ -28,6 +25,28 @@ class Pact extends Component {
   }
 }
 
-export default connect(null, {
-  setAppBarTitle
-})(withRouter(Pact));
+const populates = [
+  {
+    child: 'members',
+    root: 'users'
+  }
+]
+
+export default compose(
+  connect(
+    state => ({
+      pact: populate(state.firebase, 'pact', populates),
+    }),
+    {
+    setAppBarTitle,
+    }
+  ),
+  withRouter,
+  firebaseConnect((props) => ([
+    {
+      path: `pacts/${props.match.params.pactId}`,
+      storeAs: 'pact',
+      populates,
+    }
+  ]))
+)(Pact);
