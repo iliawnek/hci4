@@ -1,13 +1,21 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
-import { setAppBarTitle } from "../store/reducers/ui";
+import { setAppBarTitle, showCloseButton, hideCloseButton } from "../store/reducers/ui";
 import { withRouter } from 'react-router';
 import { firebaseConnect, populate } from 'react-redux-firebase';
 import { compose } from 'redux';
 
 class Pact extends Component {
+  componentWillMount() {
+    this.props.showCloseButton('/pacts');
+    if (this.props.pact) this.props.setAppBarTitle(this.props.pact.name);
+  }
+
+  componentWillUnmount() {
+    this.props.hideCloseButton();
+  }
+
   componentWillReceiveProps(nextProps) {
-    console.log(nextProps.pact)
     if (!this.props.pact && nextProps.pact) {
       this.props.setAppBarTitle(nextProps.pact.name);
     }
@@ -38,7 +46,9 @@ export default compose(
       pact: populate(state.firebase, 'pact', populates),
     }),
     {
-    setAppBarTitle,
+      setAppBarTitle,
+      showCloseButton,
+      hideCloseButton
     }
   ),
   withRouter,

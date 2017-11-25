@@ -7,9 +7,17 @@ import { firebaseConnect } from 'react-redux-firebase';
 import { compose } from 'redux';
 
 class User extends Component {
+  componentWillMount() {
+    if (this.props.user) this.props.setAppBarTitle(this.props.user.displayName)
+  }
+
   componentWillReceiveProps(nextProps) {
-    if (!this.props.user && nextProps.user) {
-      this.props.setAppBarTitle(nextProps.user.displayName);
+    const {user: thisUser} = this.props;
+    const {user: nextUser} = nextProps;
+    if (!thisUser && nextUser) {
+      this.props.setAppBarTitle(nextUser.displayName);
+    } else if (thisUser && nextUser && (thisUser.displayName !== nextUser.displayName)) {
+      this.props.setAppBarTitle(nextUser.displayName);
     }
   }
 
