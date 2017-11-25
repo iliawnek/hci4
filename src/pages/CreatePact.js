@@ -69,6 +69,10 @@ class CreatePact extends Component {
     });
   }
 
+  handleNameChange = (event) => {
+    this.setState({name: event.target.value});
+  }
+
   handleFrequencyChange = (event, index, value) => {
     const frequency = value;
     this.setState({frequency});
@@ -77,37 +81,6 @@ class CreatePact extends Component {
       const endsOn = moment(this.props.today).add(daysUntilEndDate, 'days').toDate();
       this.setState({endsOn});
     }
-  }
-
-  createPact = () => {
-    const {invited, frequency, name, runCount, endsOn} = this.state;
-    const {today, firebase, history, currentUid} = this.props;
-    const members = {}
-    const memberUids = [...Object.values(invited), currentUid];
-    memberUids.forEach(uid => {
-      members[uid] = true
-    })
-    // create pact
-    const newPactRef = firebase.ref('pacts').push();
-    const newPactId = newPactRef.key;
-    newPactRef.set({
-      members,
-      frequency,
-      startsOn: today,
-      runCount,
-      endsOn: moment(endsOn).format('YYYY-MM-DD'),
-      name,
-    })
-    // add pact to each member's user data
-    memberUids.forEach(uid => {
-      firebase.ref(`users/${uid}/pacts/${newPactId}`).set(true);
-    });
-    // redirect to new pact page
-    history.push(`/pact/${newPactId}`);
-  }
-
-  handleNameChange = (event) => {
-    this.setState({name: event.target.value});
   }
 
   handleRunCountChange = (event) => {
@@ -136,6 +109,58 @@ class CreatePact extends Component {
       (moment(day).diff(this.props.today, 'days') % this.state.frequency) !== 0
     );
     return dateDoesntAlignWithFrequency;
+  }
+
+  createPact = () => {
+    const {invited, frequency, name, runCount, endsOn} = this.state;
+    const {today, firebase, history, currentUid} = this.props;
+
+    // get member uids as an index
+    const members = {}
+    const memberUids = [...Object.values(invited), currentUid];
+    memberUids.forEach(uid => {
+      members[uid] = true
+    })
+
+    // create pactId
+    const newPactRef = firebase.ref('pacts').push();
+    const newPactId = newPactRef.key;
+
+    // create windows
+    const windowIds = {}
+    for (let i = 0; i < runCount; i++) {
+      // calculate window's start and end dates
+      let windowStartsOn = moment(today).add(frequency * i, 'days')
+      let windowEndsOn = moment(today).add(frequency * (i + 1), 'days')
+      // push to database
+      let newWindowRef = firebase.ref('windows').push()
+      let newWindowId = newWindowRef.key
+      newWindowRef.set({
+        startsOn: windowStartsOn.format('YYYY-MM-DD'),
+        endsOn: windowEndsOn.format('YYYY-MM-DD'),
+      })
+      // update window index for pact
+      windowIds[newWindowId] = true
+    }
+
+    // create pact
+    newPactRef.set({
+      name,
+      members,
+      frequency,
+      runCount,
+      startsOn: today,
+      endsOn: moment(endsOn).format('YYYY-MM-DD'),
+      windows: windowIds,
+    })
+
+    // add pact to each member's user data
+    memberUids.forEach(uid => {
+      firebase.ref(`users/${uid}/pacts/${newPactId}`).set(true);
+    });
+
+    // redirect to new pact page
+    history.push(`/pact/${newPactId}`);
   }
 
   render() {
