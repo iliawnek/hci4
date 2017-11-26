@@ -328,6 +328,5 @@ export default compose(
   ),
   firebaseConnect([
     'users',
-    'today',
   ]),
 )(CreatePact);

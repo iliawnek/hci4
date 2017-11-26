@@ -206,6 +206,5 @@ export default compose(
       path: `windows/${pactId}`,
       storeAs: 'windows',
     },
-    'today',
   ]))
 )(Pact);

@@ -70,7 +70,5 @@ export default compose(
       hideAppBar
     }
   ),
-  firebaseConnect([
-    'today',
-  ]),
+  firebaseConnect()
 )(ControlPanel);

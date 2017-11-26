@@ -2,6 +2,8 @@ import React, { Component } from "react";
 import Header from "./Header";
 import { grey100 } from "material-ui/styles/colors";
 import { connect } from 'react-redux';
+import { firebaseConnect } from 'react-redux-firebase';
+import { compose } from 'redux';
 
 class Container extends Component {
   render() {
@@ -31,8 +33,13 @@ class Container extends Component {
   }
 }
 
-export default connect(
-  (state) => ({
-    appBarShown: state.ui.appBarShown,
-  })
+export default compose(
+  connect(
+    (state) => ({
+      appBarShown: state.ui.appBarShown,
+    })
+  ),
+  firebaseConnect([
+    'today',
+  ])
 )(Container);

@@ -116,6 +116,5 @@ export default compose(
       path: 'pacts',
       populates,
     },
-    'today'
   ])
 )(Pacts)

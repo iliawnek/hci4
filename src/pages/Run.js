@@ -134,6 +134,5 @@ export default compose(
       path: `windows/${pactId}/${windowId}`,
       storeAs: 'window',
     },
-    'today',
   ]))
 )(Run);
