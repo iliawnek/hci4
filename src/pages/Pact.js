@@ -15,8 +15,9 @@ import moment from 'moment';
 class Pact extends Component {
   componentWillMount() {
     this.props.showCloseButton('/pacts');
-    if (this.props.pact) this.props.setAppBarTitle(this.props.pact.name);
-    if (this.props.windows) this.getCurrentWindow(nextProps.windows);
+    if (this.props.pact) {
+      this.props.setAppBarTitle(this.props.pact.name);
+    }
   }
 
   componentWillUnmount() {
@@ -27,21 +28,16 @@ class Pact extends Component {
     if (!this.props.pact && nextProps.pact) {
       this.props.setAppBarTitle(nextProps.pact.name);
     }
-    if (!this.props.windows && nextProps.windows) {
-      this.getCurrentWindow(nextProps.windows);
-    }
   }
 
-  getCurrentWindow = (windows) => {
+  getCurrentWindow = (windows, today) => {
     for (let [windowId, window] of Object.entries(windows)) {
       const {startsOn, endsOn} = window;
-      if (startsOn <= this.props.today && this.props.today < endsOn) {
-        this.setState({
-          currentWindow: {
-            ...window,
-            id: windowId,
-          }
-        });
+      if (startsOn <= today && today < endsOn) {
+        return {
+          ...window,
+          id: windowId,
+        }
       }
     }
   }
@@ -49,9 +45,10 @@ class Pact extends Component {
   startRun = () => {
     const {currentWindow} = this.state;
     if (currentWindow) {
-      const {history} = this.props;
+      const {history, today} = this.props;
+      const {windows} = this.props.pact;
       const {pactId} = this.props.match.params;
-      const {id: windowId} = this.state.currentWindow;
+      const {id: windowId} = this.getCurrentWindow(windows, today);
       history.push(`pact/${pactId}/run/${windowId}`);
     }
   }
@@ -59,7 +56,8 @@ class Pact extends Component {
   render() {
     const {pact, today} = this.props;
     if (!pact) return null;
-    const {currentWindow} = pact;
+    const {windows} = pact;
+    const currentWindow = this.getCurrentWindow(windows, today);
 
     const styles = {
       pact: {
@@ -96,7 +94,7 @@ class Pact extends Component {
       />
     )
 
-    const currentWindowSection = (
+    const currentWindowSection = currentWindow && (
       <Paper style={styles.paper}>
         <Subheader>Current run</Subheader>
         <div style={styles.paperContent}>
@@ -124,9 +122,11 @@ class Pact extends Component {
             you have agreed to run <b>{pact.frequency === 1 ? 'everyday' : `every ${pact.frequency} days`}</b> until the pact ends,
             which is on <b>{moment(pact.endsOn).format('Do MMMM YYYY')}</b>.
           </p>
+          {currentWindow &&
           <p>
             There are <b>{pact.runCount - currentWindow.number + 1} runs</b> left.
           </p>
+          }
         </div>
       </Paper>
     )
@@ -150,7 +150,7 @@ class Pact extends Component {
 
     return (
       <div style={styles.pact}>
-        {currentWindow && currentWindowSection}
+        {currentWindowSection}
         {pactDetailsSection}
         {leaderboardSection}
         {runFAB}
