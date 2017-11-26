@@ -14,6 +14,7 @@ import CreatePact from './pages/CreatePact'
 import User from "./pages/User";
 import Pact from "./pages/Pact";
 import Run from "./pages/Run";
+import ControlPanel from "./pages/ControlPanel";
 
 class App extends Component {
   render() {
@@ -29,6 +30,7 @@ class App extends Component {
               <Route path="/user/:uid" component={User} />
               <Route exact path="/pact/:pactId" component={Pact} />
               <Route exact path="/pact/:pactId/run/:windowId" component={Run} />
+              <Route path="/control-panel" component={ControlPanel} />
             </Container>
           </MuiThemeProvider>
         </BrowserRouter>
