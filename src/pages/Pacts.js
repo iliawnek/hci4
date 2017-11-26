@@ -12,6 +12,10 @@ import RunIcon from "material-ui/svg-icons/maps/directions-run";
 import HistoryIcon from "material-ui/svg-icons/action/history";
 
 class Pacts extends Component {
+  state = {
+    showEnded: false,
+  }
+
   componentDidMount() {
     this.props.setAppBarTitle("Pacts");
   }
@@ -20,10 +24,28 @@ class Pacts extends Component {
     this.props.history.push("/create-pact");
   };
 
+  showActivePacts = () => {
+    this.setState({showEnded: false});
+  };
+
+  showEndedPacts = () => {
+    this.setState({showEnded: true});
+  };
+
   render() {
+    const {showEnded} = this.state;
+    const {today, pacts} = this.props;
+
     const styles = {
       pacts: {
+        paddingTop: 72,
         marginBottom: 90
+      },
+      tabs: {
+        position: 'fixed',
+        top: 64,
+        zIndex: 2,
+        width: '100%',
       },
       addButton: {
         position: "fixed",
@@ -32,25 +54,40 @@ class Pacts extends Component {
       }
     };
 
-    const pactCards = this.props.pacts && Object.entries(this.props.pacts).map(([pactId, pact]) => (
-      <PactCard key={pactId} {...pact} pactId={pactId} />
-    ));
+    const pactCards = pacts && today &&
+      Object.entries(pacts)
+        .filter(([pactId, pact]) => (
+          showEnded ? pact.endsOn <= today : today < pact.endsOn
+        ))
+        .map(([pactId, pact]) => (
+          <PactCard key={pactId} {...pact} pactId={pactId} />
+        ));
+
+    const newPactFAB = (
+      <FloatingActionButton
+        style={styles.addButton}
+        onClick={this.handleAddButtonClick}
+      >
+        <AddIcon />
+      </FloatingActionButton>
+    )
 
     return (
-      <div style={{ paddingTop: 72 }}>
-        <Tabs style={{ position: "fixed", top: 64, zIndex: 2, width: "100%" }} secondary="true">
-          <Tab icon={<RunIcon />} label="Active" />
-          <Tab icon={<HistoryIcon />} label="Completed" />
+      <div style={styles.pacts}>
+        <Tabs style={styles.tabs}>
+          <Tab
+            icon={<RunIcon />}
+            label="Active"
+            onActive={this.showActivePacts}
+          />
+          <Tab
+            icon={<HistoryIcon />}
+            label="Ended"
+            onActive={this.showEndedPacts}
+          />
         </Tabs>
-        <div style={styles.pacts}>
-          {pactCards}
-          <FloatingActionButton
-            style={styles.addButton}
-            onClick={this.handleAddButtonClick}
-          >
-            <AddIcon />
-          </FloatingActionButton>
-        </div>
+        {pactCards}
+        {newPactFAB}
       </div>
     );
   }
@@ -67,6 +104,7 @@ export default compose(
   connect(
     state => ({
       pacts: populate(state.firebase, 'pacts', populates),
+      today: state.firebase.data.today,
     }),
     {
       setAppBarTitle
@@ -77,6 +115,7 @@ export default compose(
     {
       path: 'pacts',
       populates,
-    }
+    },
+    'today'
   ])
 )(Pacts)
