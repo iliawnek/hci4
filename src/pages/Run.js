@@ -30,7 +30,7 @@ class Run extends Component {
   finishRun = () => {
     const {firebase, currentUid, history} = this.props;
     const {windowId, pactId} = this.props.match.params;
-    firebase.ref(`windows/${windowId}/completed`).update({
+    firebase.ref(`windows/${pactId}/${windowId}/completed`).update({
       [currentUid]: true,
     });
     history.push(`/pact/${pactId}`);
@@ -109,14 +109,14 @@ export default compose(
     }
   ),
   withRouter,
-  firebaseConnect((props) => ([
+  firebaseConnect(({match: {params: {pactId, windowId}}}) => ([
     {
-      path: `pacts/${props.match.params.pactId}`,
+      path: `pacts/${pactId}`,
       storeAs: 'pact',
       populates,
     },
     {
-      path: `windows/${props.match.params.windowId}`,
+      path: `windows/${pactId}/${windowId}`,
       storeAs: 'window',
     },
     'today',

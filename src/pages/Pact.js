@@ -25,6 +25,7 @@ class Pact extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
+    console.log(this.props.windows)
     if (!this.props.pact && nextProps.pact) {
       this.props.setAppBarTitle(nextProps.pact.name);
     }
@@ -43,8 +44,7 @@ class Pact extends Component {
   }
 
   startRun = () => {
-    const {history, today} = this.props;
-    const {windows} = this.props.pact;
+    const {history, today, windows} = this.props;
     const currentWindow = this.getCurrentWindow(windows, today);
     if (currentWindow) {
       const {pactId} = this.props.match.params;
@@ -54,10 +54,11 @@ class Pact extends Component {
   }
 
   render() {
-    const {pact, today} = this.props;
+    const {pact, today, windows, currentUid} = this.props;
     if (!pact) return null;
-    const {windows} = pact;
-    const currentWindow = this.getCurrentWindow(windows, today);
+    const currentWindow = windows && this.getCurrentWindow(windows, today);
+    const currentWindowCompleted = currentWindow && currentWindow.completed && currentWindow.completed[currentUid];
+    const runsLeft = pact.runCount - currentWindow.number + (currentWindowCompleted ? 0 : 1);
 
     const styles = {
       pact: {
@@ -86,28 +87,44 @@ class Pact extends Component {
 
     const runButton = (
       <RaisedButton
-        label="Run now"
+        label={currentWindowCompleted ? `Next run unlocks ${moment(today).to(currentWindow.endsOn)}` : "Run now"}
         secondary={true}
         icon={<RunIcon/>}
         style={styles.runButton}
         onClick={this.startRun}
+        disabled={currentWindowCompleted}
       />
+    )
+
+    const currentWindowNotCompletedContent = (
+      <div>
+        <p>
+          You are on <b>run {currentWindow.number} out of {pact.runCount}</b>.
+        </p>
+        <p>
+          You have <b>{moment(today).to(currentWindow.endsOn, true)} left</b> to complete the current run.
+          You'll earn <b># points</b> if you hit your target.
+        </p>
+        <p>
+          Since you're on a <b>#-run streak</b>, you'll earn <b># bonus points</b> if you keep it going!
+        </p>
+      </div>
+    )
+
+    const currentWindowCompletedContent = (
+      <div>
+        <p>
+          You've completed <b>run {currentWindow.number} out of {pact.runCount}</b>!
+          Your streak has been extended to <b># runs in a row</b>.
+        </p>
+      </div>
     )
 
     const currentWindowSection = currentWindow && (
       <Paper style={styles.paper}>
         <Subheader>Current run</Subheader>
         <div style={styles.paperContent}>
-          <p>
-            You are on <b>run {currentWindow.number} out of {pact.runCount}</b>.
-          </p>
-          <p>
-            You have <b>{moment(today).to(currentWindow.endsOn, true)} left</b> to complete the current run.
-            You'll earn <b># points</b> if you hit your target.
-          </p>
-          <p>
-            Since you're on a <b>#-run streak</b>, you'll earn <b># bonus points</b> if you keep it going!
-          </p>
+          {currentWindowCompleted ? currentWindowCompletedContent : currentWindowNotCompletedContent}
           {runButton}
         </div>
       </Paper>
@@ -122,11 +139,9 @@ class Pact extends Component {
             you have agreed to run <b>{pact.frequency === 1 ? 'everyday' : `every ${pact.frequency} days`}</b> until the pact ends,
             which is on <b>{moment(pact.endsOn).format('Do MMMM YYYY')}</b>.
           </p>
-          {currentWindow &&
-          <p>
-            There are <b>{pact.runCount - currentWindow.number + 1} runs</b> left.
-          </p>
-          }
+          {currentWindow && <p>
+            There are <b>{runsLeft} runs</b> left.
+          </p>}
         </div>
       </Paper>
     )
@@ -143,6 +158,7 @@ class Pact extends Component {
         style={styles.runFAB}
         onClick={this.startRun}
         secondary={true}
+        disabled={currentWindowCompleted}
       >
         <RunIcon />
       </FloatingActionButton>
@@ -164,10 +180,6 @@ const populates = [
     child: 'members',
     root: 'users'
   },
-  {
-    child: 'windows',
-    root: 'windows'
-  },
 ]
 
 export default compose(
@@ -175,6 +187,8 @@ export default compose(
     state => ({
       today: state.firebase.data.today,
       pact: populate(state.firebase, 'pact', populates),
+      windows: state.firebase.data.windows,
+      currentUid: state.firebase.auth.uid,
     }),
     {
       setAppBarTitle,
@@ -183,11 +197,15 @@ export default compose(
     }
   ),
   withRouter,
-  firebaseConnect((props) => ([
+  firebaseConnect(({match: {params: {pactId}}}) => ([
     {
-      path: `pacts/${props.match.params.pactId}`,
+      path: `pacts/${pactId}`,
       storeAs: 'pact',
       populates,
+    },
+    {
+      path: `windows/${pactId}`,
+      storeAs: 'windows',
     },
     'today',
   ]))

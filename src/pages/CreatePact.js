@@ -122,29 +122,9 @@ class CreatePact extends Component {
       members[uid] = true
     })
 
-    // create pactId
+    // create pact
     const newPactRef = firebase.ref('pacts').push();
     const newPactId = newPactRef.key;
-
-    // create windows
-    const windowIds = {}
-    for (let i = 0; i < runCount; i++) {
-      // calculate window's start and end dates
-      let windowStartsOn = moment(today).add(frequency * i, 'days')
-      let windowEndsOn = moment(today).add(frequency * (i + 1), 'days')
-      // push to database
-      let newWindowRef = firebase.ref('windows').push()
-      let newWindowId = newWindowRef.key
-      newWindowRef.set({
-        number: i + 1,
-        startsOn: windowStartsOn.format('YYYY-MM-DD'),
-        endsOn: windowEndsOn.format('YYYY-MM-DD'),
-      })
-      // update window index for pact
-      windowIds[newWindowId] = true
-    }
-
-    // create pact
     newPactRef.set({
       name,
       members,
@@ -152,8 +132,20 @@ class CreatePact extends Component {
       runCount,
       startsOn: today,
       endsOn: moment(endsOn).format('YYYY-MM-DD'),
-      windows: windowIds,
     })
+
+    // create windows
+    for (let i = 0; i < runCount; i++) {
+      // calculate window's start and end dates
+      let windowStartsOn = moment(today).add(frequency * i, 'days')
+      let windowEndsOn = moment(today).add(frequency * (i + 1), 'days')
+      // push to database
+      firebase.ref(`windows/${newPactId}`).push().set({
+        number: i + 1,
+        startsOn: windowStartsOn.format('YYYY-MM-DD'),
+        endsOn: windowEndsOn.format('YYYY-MM-DD'),
+      })
+    }
 
     // add pact to each member's user data
     memberUids.forEach(uid => {
