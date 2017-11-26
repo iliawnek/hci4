@@ -37,10 +37,10 @@ class Run extends Component {
   }
 
   finishRun = () => {
-    const {firebase, currentUid, history} = this.props;
+    const {firebase, currentUid, history, today} = this.props;
     const {windowId, pactId} = this.props.match.params;
     firebase.ref(`windows/${pactId}/${windowId}/completed`).update({
-      [currentUid]: true,
+      [currentUid]: today,
     });
     history.push(`/pact/${pactId}`);
   }

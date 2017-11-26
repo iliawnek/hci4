@@ -37,7 +37,7 @@ class ControlPanel extends Component {
     };
 
     const todaySentence = (
-      <p>Today is <b>{moment(today).format('YYYY-MM-DD')}</b>.</p>
+      <p>Today is <b>{moment(today).format('Do MMMM YYYY')}</b>.</p>
     );
 
     return (

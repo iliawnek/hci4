@@ -11,6 +11,7 @@ import RaisedButton from "material-ui/RaisedButton";
 import Subheader from "material-ui/Subheader";
 import Leaderboard from "../components/Leaderboard";
 import moment from 'moment';
+import {pinkA200} from 'material-ui/styles/colors';
 
 class Pact extends Component {
   componentDidMount() {
@@ -55,9 +56,20 @@ class Pact extends Component {
   render() {
     const {pact, today, windows, currentUid} = this.props;
     if (!pact) return null;
-    const currentWindow = windows && this.getCurrentWindow(windows, today);
-    const currentWindowCompleted = currentWindow && currentWindow.completed && currentWindow.completed[currentUid];
-    const runsLeft = currentWindow && pact.runCount - currentWindow.number + (currentWindowCompleted ? 0 : 1);
+    const currentWindow = windows &&
+      this.getCurrentWindow(windows, today);
+    const currentWindowCompleted = currentWindow && currentWindow.completed &&
+      currentWindow.completed[currentUid] !== undefined;
+    const currentWindowCompletedOn = currentWindowCompleted &&
+      currentWindow.completed[currentUid];
+    const daysSinceCurrentWindowCompleted = currentWindowCompletedOn &&
+      moment(today).diff(currentWindowCompletedOn, 'days');
+    const runsLeft = currentWindow &&
+      pact.runCount - currentWindow.number + (currentWindowCompleted ? 0 : 1);
+    const pactEnded = today >= pact.endsOn;
+    const dateFormat = 'Do MMMM YYYY';
+    const lastWindow = currentWindow &&
+      pact.runCount === currentWindow.number;
 
     const styles = {
       pact: {
@@ -72,6 +84,14 @@ class Pact extends Component {
         marginLeft: 16,
         marginRight: 16,
       },
+      notice: {
+        backgroundColor: pinkA200,
+        color: 'white',
+      },
+      noticeContent: {
+        display: 'flex',
+        justifyContent: 'center',
+      },
       runButton: {
         marginTop: 16,
         marginBottom: 16,
@@ -84,9 +104,29 @@ class Pact extends Component {
       }
     };
 
+    const pactCompletedNotice = pactEnded && (
+      <Paper style={{...styles.paper, ...styles.notice}}>
+        <div style={{...styles.paperContent, ...styles.noticeContent}}>
+          <p>This pact ended on {moment(pact.endsOn).format(dateFormat)}.</p>
+        </div>
+      </Paper>
+    )
+
+    const runButtonLabel = (() => {
+      if (currentWindowCompleted) {
+        if (lastWindow) {
+          return 'Last run completed'
+        } else {
+          `Next run unlocks ${moment(today).to(currentWindow.endsOn)}`
+        }
+      } else {
+        return 'Run now'
+      }
+    })()
+
     const runButton = (
       <RaisedButton
-        label={currentWindowCompleted ? `Next run unlocks ${moment(today).to(currentWindow.endsOn)}` : "Run now"}
+        label={runButtonLabel}
         secondary={true}
         icon={<RunIcon/>}
         style={styles.runButton}
@@ -105,7 +145,7 @@ class Pact extends Component {
           You'll earn <b># points</b> if you hit your target.
         </p>
         <p>
-          Since you're on a <b>#-run streak</b>, you'll earn <b># bonus points</b> if you keep it going!
+          Since you're on a <b>#-run streak</b>, you'll also earn <b># bonus points</b> if you keep it going!
         </p>
       </div>
     )
@@ -113,7 +153,20 @@ class Pact extends Component {
     const currentWindowCompletedContent = currentWindow && (
       <div>
         <p>
-          You've completed <b>run {currentWindow.number} out of {pact.runCount}</b>!
+          You completed <b>run {currentWindow.number} out of {pact.runCount}</b> on {moment(currentWindowCompletedOn).format(dateFormat)} ({
+            (() => {
+              switch (daysSinceCurrentWindowCompleted) {
+                case 0:
+                  return 'today'
+                case 1:
+                  return 'yesterday'
+                default:
+                  return `${daysSinceCurrentWindowCompleted}\u00a0days\u00a0ago`
+              }
+            })()
+          }).
+        </p>
+        <p>
           Your streak has been extended to <b># runs in a row</b>.
         </p>
       </div>
@@ -129,17 +182,26 @@ class Pact extends Component {
       </Paper>
     )
 
-    const pactDetailsSection = (
+    const pactGoalSection = (
       <Paper style={styles.paper}>
-        <Subheader>Pact details</Subheader>
+        <Subheader>Pact goal</Subheader>
         <div style={styles.paperContent}>
           <p>
-            As a member of this pact,
-            you have agreed to run <b>{pact.frequency === 1 ? 'everyday' : `every ${pact.frequency} days`}</b> until the pact ends,
-            which is on <b>{moment(pact.endsOn).format('Do MMMM YYYY')}</b>.
+            As a member of this pact, you agreed to:
           </p>
+          <ul>
+            <li>
+              run <b>{pact.frequency === 1 ? 'everyday' : `every ${pact.frequency} days`}</b>
+            </li>
+            <li>
+              from <b>{moment(pact.startsOn).format(dateFormat)}</b>
+            </li>
+            <li>
+              to <b>{moment(pact.endsOn).format(dateFormat)}</b>.
+            </li>
+          </ul>
           {currentWindow && <p>
-            There are <b>{runsLeft} runs</b> left.
+            There {runsLeft === 1 ? 'is' : 'are'} <b>{runsLeft} {runsLeft === 1 ? 'run' : 'runs'}</b> remaining.
           </p>}
         </div>
       </Paper>
@@ -152,12 +214,11 @@ class Pact extends Component {
       </Paper>
     )
 
-    const runFAB = (
+    const runFAB = !currentWindowCompleted && !pactEnded && (
       <FloatingActionButton
         style={styles.runFAB}
         onClick={this.startRun}
         secondary={true}
-        disabled={currentWindowCompleted}
       >
         <RunIcon />
       </FloatingActionButton>
@@ -165,9 +226,10 @@ class Pact extends Component {
 
     return (
       <div style={styles.pact}>
+        {pactCompletedNotice}
         {currentWindowSection}
-        {pactDetailsSection}
         {leaderboardSection}
+        {pactGoalSection}
         {runFAB}
       </div>
     );
