@@ -25,7 +25,6 @@ class Pact extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    console.log(this.props.windows)
     if (!this.props.pact && nextProps.pact) {
       this.props.setAppBarTitle(nextProps.pact.name);
     }
