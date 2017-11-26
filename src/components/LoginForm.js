@@ -28,6 +28,7 @@ class LoginForm extends Component {
       email: this.state.email,
       password: this.state.password
     });
+    this.props.history.push('/pacts');
   };
 
   render() {
