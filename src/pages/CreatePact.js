@@ -136,6 +136,7 @@ class CreatePact extends Component {
       let newWindowRef = firebase.ref('windows').push()
       let newWindowId = newWindowRef.key
       newWindowRef.set({
+        number: i + 1,
         startsOn: windowStartsOn.format('YYYY-MM-DD'),
         endsOn: windowEndsOn.format('YYYY-MM-DD'),
       })
