@@ -11,7 +11,7 @@ class Login extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.user) {
+    if (nextProps.userExists) {
       this.props.history.push("/pacts");
     }
   }
@@ -36,8 +36,8 @@ class Login extends Component {
 
 export default withRouter(
   connect(
-    state => ({
-      user: state.auth.user
+    ({firebase: {auth: {isEmpty, isLoaded}}}) => ({
+      userExists: isLoaded && !isEmpty,
     }),
     {
       setAppBarTitle
