@@ -7,7 +7,7 @@ import { firebaseConnect } from 'react-redux-firebase';
 import { compose } from 'redux';
 
 class User extends Component {
-  componentWillMount() {
+  componentDidMount() {
     if (this.props.user) this.props.setAppBarTitle(this.props.user.displayName)
   }
 

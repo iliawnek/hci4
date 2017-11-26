@@ -1,13 +1,16 @@
 import React, { Component } from "react";
 import Header from "./Header";
 import { grey100 } from "material-ui/styles/colors";
+import { connect } from 'react-redux';
 
 class Container extends Component {
   render() {
+    const {appBarShown} = this.props;
+
     const styles = {
       content: {
         position: "absolute",
-        top: 64,
+        top: appBarShown ? 64 : 0,
         bottom: 0,
         left: 0,
         right: 0,
@@ -19,7 +22,7 @@ class Container extends Component {
 
     return (
         <div>
-          <Header />
+          {appBarShown && <Header />}
           <div style={styles.content}>
             {this.props.children}
           </div>
@@ -28,4 +31,8 @@ class Container extends Component {
   }
 }
 
-export default Container;
+export default connect(
+  (state) => ({
+    appBarShown: state.ui.appBarShown,
+  })
+)(Container);

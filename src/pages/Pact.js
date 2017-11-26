@@ -13,7 +13,7 @@ import Leaderboard from "../components/Leaderboard";
 import moment from 'moment';
 
 class Pact extends Component {
-  componentWillMount() {
+  componentDidMount() {
     this.props.showCloseButton('/pacts');
     if (this.props.pact) {
       this.props.setAppBarTitle(this.props.pact.name);
@@ -57,7 +57,7 @@ class Pact extends Component {
     if (!pact) return null;
     const currentWindow = windows && this.getCurrentWindow(windows, today);
     const currentWindowCompleted = currentWindow && currentWindow.completed && currentWindow.completed[currentUid];
-    const runsLeft = pact.runCount - currentWindow.number + (currentWindowCompleted ? 0 : 1);
+    const runsLeft = currentWindow && pact.runCount - currentWindow.number + (currentWindowCompleted ? 0 : 1);
 
     const styles = {
       pact: {
@@ -95,7 +95,7 @@ class Pact extends Component {
       />
     )
 
-    const currentWindowNotCompletedContent = (
+    const currentWindowNotCompletedContent = currentWindow && (
       <div>
         <p>
           You are on <b>run {currentWindow.number} out of {pact.runCount}</b>.
@@ -110,7 +110,7 @@ class Pact extends Component {
       </div>
     )
 
-    const currentWindowCompletedContent = (
+    const currentWindowCompletedContent = currentWindow && (
       <div>
         <p>
           You've completed <b>run {currentWindow.number} out of {pact.runCount}</b>!

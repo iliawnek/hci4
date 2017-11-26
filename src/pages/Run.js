@@ -1,6 +1,14 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
-import { setAppBarTitle } from "../store/reducers/ui";
+import {
+  hideAppBar,
+  showAppBar,
+  showCloseButton,
+  hideCloseButton,
+  setAppBarTitle,
+  hideMenuButton,
+  showMenuButton,
+} from "../store/reducers/ui";
 import { withRouter } from 'react-router';
 import { firebaseConnect, populate } from 'react-redux-firebase';
 import { compose } from 'redux';
@@ -11,20 +19,21 @@ class Run extends Component {
     started: false,
   }
 
-  componentWillMount() {
-    if (this.props.pact) {
-      this.props.setAppBarTitle(this.props.pact.name);
-    }
+  componentDidMount() {
+    this.props.setAppBarTitle('Run');
+    this.props.showCloseButton(`/pact/${this.props.match.params.pactId}`);
+    this.props.hideMenuButton();
   }
 
-  componentWillReceiveProps(nextProps) {
-    if (!this.props.pact && nextProps.pact) {
-      this.props.setAppBarTitle(`Run for ${nextProps.pact.name}`);
-    }
+  componentWillUnmount() {
+    this.props.showAppBar();
+    this.props.hideCloseButton();
+    this.props.showMenuButton();
   }
 
   startRun = () => {
-    this.setState({started: true})
+    this.setState({started: true});
+    this.props.hideAppBar();
   }
 
   finishRun = () => {
@@ -105,7 +114,13 @@ export default compose(
       currentUid: state.firebase.auth.uid,
     }),
     {
+      hideAppBar,
+      showAppBar,
+      hideCloseButton,
+      showCloseButton,
       setAppBarTitle,
+      hideMenuButton,
+      showMenuButton,
     }
   ),
   withRouter,

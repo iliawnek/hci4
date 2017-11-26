@@ -58,7 +58,7 @@ class Header extends Component {
       )
     }
 
-    const sidebar = (
+    const sidebar = this.props.menuButtonShown && (
       <Drawer
         docked={false}
         open={this.props.sidebarOpen}
@@ -89,7 +89,7 @@ class Header extends Component {
         <AppBar
           title={this.props.title}
           onLeftIconButtonTouchTap={this.toggleSidebar}
-          showMenuIconButton={uid !== null}
+          showMenuIconButton={this.props.menuButtonShown}
           iconElementRight={this.props.closeButtonShown ? closeButton : null}
         />
         {uid && sidebar}
@@ -108,6 +108,7 @@ export default compose(
       uid: state.firebase.auth && state.firebase.auth.uid,
       email: state.firebase.auth && state.firebase.auth.email,
       displayName: state.firebase.profile && state.firebase.profile.displayName,
+      menuButtonShown: state.ui.menuButtonShown,
     }),
     {
       openSidebar,

@@ -12,7 +12,7 @@ import RunIcon from "material-ui/svg-icons/maps/directions-run";
 import HistoryIcon from "material-ui/svg-icons/action/history";
 
 class Pacts extends Component {
-  componentWillMount() {
+  componentDidMount() {
     this.props.setAppBarTitle("Pacts");
   }
 

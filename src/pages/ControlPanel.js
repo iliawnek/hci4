@@ -1,14 +1,14 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
-import { setAppBarTitle } from "../store/reducers/ui";
+import { hideAppBar } from "../store/reducers/ui";
 import { compose } from 'redux';
 import { firebaseConnect } from 'react-redux-firebase';
 import moment from 'moment';
 import RaisedButton from 'material-ui/RaisedButton';
 
 class ControlPanel extends Component {
-  componentWillMount() {
-    this.props.setAppBarTitle("Control panel");
+  componentDidMount() {
+    this.props.hideAppBar();
   }
 
   changeToday = (dayCount) => {
@@ -37,7 +37,7 @@ class ControlPanel extends Component {
     };
 
     const todaySentence = (
-      <p>Today is {moment(today).format('YYYY-MM-DD')}.</p>
+      <p>Today is <b>{moment(today).format('YYYY-MM-DD')}</b>.</p>
     );
 
     return (
@@ -67,7 +67,7 @@ export default compose(
       today: state.firebase.data.today
     }),
     {
-      setAppBarTitle
+      hideAppBar
     }
   ),
   firebaseConnect([

@@ -6,7 +6,7 @@ import { withRouter } from "react-router";
 import Card from 'material-ui/Card';
 
 class Login extends Component {
-  componentWillMount() {
+  componentDidMount() {
     this.props.setAppBarTitle("Login");
   }
 

@@ -3,6 +3,10 @@ const OPEN_SIDEBAR = "hci4/ui/OPEN_SIDEBAR";
 const CLOSE_SIDEBAR = "hci4/ui/CLOSE_SIDEBAR";
 const SHOW_CLOSE_BUTTON = "hci4/ui/SHOW_CLOSE_BUTTON";
 const HIDE_CLOSE_BUTTON = "hci4/ui/HIDE_CLOSE_BUTTON";
+const SHOW_APP_BAR = "hci4/ui/SHOW_APP_BAR";
+const HIDE_APP_BAR = "hci4/ui/HIDE_APP_BAR";
+const SHOW_MENU_BUTTON = "hci4/ui/SHOW_MENU_BUTTON";
+const HIDE_MENU_BUTTON = "hci4/ui/HIDE_MENU_BUTTON";
 
 export function setAppBarTitle(title) {
   return {
@@ -36,11 +40,37 @@ export function hideCloseButton() {
   };
 }
 
+export function showAppBar() {
+  return {
+    type: SHOW_APP_BAR
+  };
+}
+
+export function hideAppBar() {
+  return {
+    type: HIDE_APP_BAR
+  };
+}
+
+export function showMenuButton() {
+  return {
+    type: SHOW_MENU_BUTTON
+  };
+}
+
+export function hideMenuButton() {
+  return {
+    type: HIDE_MENU_BUTTON
+  };
+}
+
 const initialState = {
   appBarTitle: "",
   sidebarOpen: false,
   closeButtonShown: false,
-  closeTo: null
+  closeTo: null,
+  appBarShown: true,
+  menuButtonShown: true,
 };
 
 export default function ui(state = initialState, action = {}) {
@@ -75,6 +105,30 @@ export default function ui(state = initialState, action = {}) {
         ...state,
         closeButtonShown: false,
         closeTo: null
+      };
+
+    case SHOW_APP_BAR:
+      return {
+        ...state,
+        appBarShown: true,
+      };
+
+    case HIDE_APP_BAR:
+      return {
+        ...state,
+        appBarShown: false,
+      };
+
+    case SHOW_MENU_BUTTON:
+      return {
+        ...state,
+        menuButtonShown: true,
+      };
+
+    case HIDE_MENU_BUTTON:
+      return {
+        ...state,
+        menuButtonShown: false,
       };
 
     default:

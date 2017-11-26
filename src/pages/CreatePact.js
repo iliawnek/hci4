@@ -23,7 +23,7 @@ class CreatePact extends Component {
     endsOn: null
   }
 
-  componentWillMount() {
+  componentDidMount() {
     this.props.setAppBarTitle("Create pact");
     this.props.showCloseButton('/pacts');
   }
