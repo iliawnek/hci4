@@ -13,6 +13,7 @@ import Pacts from "./pages/Pacts";
 import CreatePact from './pages/CreatePact'
 import User from "./pages/User";
 import Pact from "./pages/Pact";
+import Run from "./pages/Run";
 
 class App extends Component {
   render() {
@@ -26,7 +27,8 @@ class App extends Component {
               <Route path="/pacts" component={Pacts} />
               <Route path="/create-pact" component={CreatePact} />
               <Route path="/user/:uid" component={User} />
-              <Route path="/pact/:pactId" component={Pact} />
+              <Route exact path="/pact/:pactId" component={Pact} />
+              <Route exact path="/pact/:pactId/run/:windowId" component={Run} />
             </Container>
           </MuiThemeProvider>
         </BrowserRouter>

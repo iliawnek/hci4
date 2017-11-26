@@ -43,13 +43,13 @@ class Pact extends Component {
   }
 
   startRun = () => {
-    const {currentWindow} = this.state;
+    const {history, today} = this.props;
+    const {windows} = this.props.pact;
+    const currentWindow = this.getCurrentWindow(windows, today);
     if (currentWindow) {
-      const {history, today} = this.props;
-      const {windows} = this.props.pact;
       const {pactId} = this.props.match.params;
-      const {id: windowId} = this.getCurrentWindow(windows, today);
-      history.push(`pact/${pactId}/run/${windowId}`);
+      const {id: windowId} = currentWindow;
+      history.push(`/pact/${pactId}/run/${windowId}`);
     }
   }
 
