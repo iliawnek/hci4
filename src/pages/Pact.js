@@ -117,7 +117,7 @@ class Pact extends Component {
         if (lastWindow) {
           return 'Last run completed'
         } else {
-          `Next run unlocks ${moment(today).to(currentWindow.endsOn)}`
+          return `Next run unlocks ${moment(today).to(currentWindow.endsOn)}`
         }
       } else {
         return 'Run now'
