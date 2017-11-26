@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
-import { setAppBarTitle } from "../store/reducers/ui";
+import { setAppBarTitle, hideMenuButton, showMenuButton } from "../store/reducers/ui";
 import LoginForm from "../components/LoginForm";
 import { withRouter } from "react-router";
 import Card from 'material-ui/Card';
@@ -8,6 +8,11 @@ import Card from 'material-ui/Card';
 class Login extends Component {
   componentDidMount() {
     this.props.setAppBarTitle("Login");
+    this.props.hideMenuButton();
+  }
+
+  componentWillUnmount() {
+    this.props.showMenuButton();
   }
 
   componentWillReceiveProps(nextProps) {
@@ -40,7 +45,9 @@ export default withRouter(
       userExists: isLoaded && !isEmpty,
     }),
     {
-      setAppBarTitle
+      setAppBarTitle,
+      hideMenuButton,
+      showMenuButton
     }
   )(Login)
 );
