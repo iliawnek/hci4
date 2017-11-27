@@ -87,6 +87,7 @@ class Pact extends Component {
       notice: {
         backgroundColor: pinkA200,
         color: 'white',
+        marginBottom: 0,
       },
       noticeContent: {
         display: 'flex',
@@ -210,7 +211,7 @@ class Pact extends Component {
     const leaderboardSection = (
       <Paper style={styles.paper}>
         <Subheader>Leaderboard</Subheader>
-        <Leaderboard pact={pact}/>
+        <Leaderboard pact={pact} windows={windows} currentWindow={currentWindow}/>
       </Paper>
     )
 
