@@ -157,14 +157,11 @@ class Pact extends Component {
     const currentWindowNotCompletedContent = currentWindow && (
       <div>
         <p>
-          You are on <b>run {currentWindow.number} out of {pact.runCount}</b>.
+          This is <b>run {currentWindow.number} out of {pact.runCount}</b>.
         </p>
         <p>
           You have <b>{moment(today).to(currentWindow.endsOn, true)} left</b> to complete the current run.
-          You'll earn <b># points</b> if you hit your target.
-        </p>
-        <p>
-          Since you're on a <b>#-run streak</b>, you'll also earn <b># bonus points</b> if you keep it going!
+          You're currently on a <b>#-run streak</b>. Keep it going!
         </p>
       </div>
     )
@@ -186,7 +183,7 @@ class Pact extends Component {
           }).
         </p>
         <p>
-          Your streak has been extended to <b># runs in a row</b>.
+          You increased your streak to <b># runs in a row</b>!
         </p>
       </div>
     )
