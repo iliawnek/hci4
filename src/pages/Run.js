@@ -49,7 +49,7 @@ class Run extends Component {
     const {pacts, windows} = this.props;
     const {pactId, windowId} = this.props.match.params;
     const pact = pacts && pacts[pactId];
-    const window = windows && windows[windowId];
+    const window = windows && windows[pactId][windowId];
     if (!pact || !window) return null;
 
     const {started} = this.state;
