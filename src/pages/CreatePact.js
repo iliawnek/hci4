@@ -326,7 +326,5 @@ export default compose(
       hideCloseButton
     }
   ),
-  firebaseConnect([
-    'users',
-  ]),
+  firebaseConnect(),
 )(CreatePact);

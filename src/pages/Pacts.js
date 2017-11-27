@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { compose } from 'redux';
 import { connect } from "react-redux";
-import { firebaseConnect, populate } from "react-redux-firebase";
+import { firebaseConnect } from "react-redux-firebase";
 import { setAppBarTitle } from "../store/reducers/ui";
 import PactCard from "../components/PactCard";
 import FloatingActionButton from "material-ui/FloatingActionButton";
@@ -58,10 +58,10 @@ class Pacts extends Component {
       Object.entries(pacts)
         .filter(([pactId, pact]) => (
           pact.members[currentUid] &&
-          showEnded ? pact.endsOn <= today : today < pact.endsOn
+          (showEnded ? pact.endsOn <= today : today < pact.endsOn)
         ))
         .map(([pactId, pact]) => (
-          <PactCard key={pactId} {...pact} pactId={pactId} />
+          <PactCard key={pactId} pact={pact} pactId={pactId} />
         ));
 
     const newPactFAB = (
@@ -94,17 +94,10 @@ class Pacts extends Component {
   }
 }
 
-const populates = [
-  {
-    child: 'members',
-    root: 'users',
-  },
-]
-
 export default compose(
   connect(
     state => ({
-      pacts: populate(state.firebase, 'pacts', populates),
+      pacts: state.firebase.data.pacts,
       today: state.firebase.data.today,
       currentUid: state.firebase.auth.uid,
     }),
@@ -113,10 +106,5 @@ export default compose(
     }
   ),
   withRouter,
-  firebaseConnect([
-    {
-      path: 'pacts',
-      populates,
-    },
-  ])
+  firebaseConnect()
 )(Pacts)

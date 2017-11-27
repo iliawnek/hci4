@@ -10,7 +10,7 @@ import {
   showMenuButton,
 } from "../store/reducers/ui";
 import { withRouter } from 'react-router';
-import { firebaseConnect, populate } from 'react-redux-firebase';
+import { firebaseConnect } from 'react-redux-firebase';
 import { compose } from 'redux';
 import RaisedButton from "material-ui/RaisedButton";
 
@@ -46,7 +46,10 @@ class Run extends Component {
   }
 
   render() {
-    const {pact, window} = this.props;
+    const {pacts, windows} = this.props;
+    const {pactId, windowId} = this.props.match.params;
+    const pact = pacts && pacts[pactId];
+    const window = windows && windows[windowId];
     if (!pact || !window) return null;
 
     const {started} = this.state;
@@ -94,23 +97,12 @@ class Run extends Component {
   }
 }
 
-const populates = [
-  {
-    child: 'members',
-    root: 'users'
-  },
-  {
-    child: 'windows',
-    root: 'windows'
-  },
-]
-
 export default compose(
   connect(
     state => ({
       today: state.firebase.data.today,
-      pact: populate(state.firebase, 'pact', populates),
-      window: state.firebase.data.window,
+      pacts: state.firebase.data.pacts,
+      windows: state.firebase.data.windows,
       currentUid: state.firebase.auth.uid,
     }),
     {
@@ -124,15 +116,5 @@ export default compose(
     }
   ),
   withRouter,
-  firebaseConnect(({match: {params: {pactId, windowId}}}) => ([
-    {
-      path: `pacts/${pactId}`,
-      storeAs: 'pact',
-      populates,
-    },
-    {
-      path: `windows/${pactId}/${windowId}`,
-      storeAs: 'window',
-    },
-  ]))
+  firebaseConnect(),
 )(Run);

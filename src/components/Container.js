@@ -41,5 +41,8 @@ export default compose(
   ),
   firebaseConnect([
     'today',
+    'users',
+    'windows',
+    'pacts',
   ])
 )(Container);

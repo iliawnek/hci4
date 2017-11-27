@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import { setAppBarTitle, showCloseButton, hideCloseButton } from "../store/reducers/ui";
 import { withRouter } from 'react-router';
-import { firebaseConnect, populate } from 'react-redux-firebase';
+import { firebaseConnect } from 'react-redux-firebase';
 import { compose } from 'redux';
 import FloatingActionButton from "material-ui/FloatingActionButton";
 import RunIcon from "material-ui/svg-icons/maps/directions-run";
@@ -16,8 +16,9 @@ import {pinkA200} from 'material-ui/styles/colors';
 class Pact extends Component {
   componentDidMount() {
     this.props.showCloseButton('/pacts');
-    if (this.props.pact) {
-      this.props.setAppBarTitle(this.props.pact.name);
+    const pact = this.getPact(this.props);
+    if (pact) {
+      this.props.setAppBarTitle(pact.name);
     }
   }
 
@@ -26,12 +27,27 @@ class Pact extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (!this.props.pact && nextProps.pact) {
-      this.props.setAppBarTitle(nextProps.pact.name);
+    const thisPact = this.getPact(this.props);
+    const nextPact = this.getPact(nextProps);
+    if (!thisPact && nextPact) {
+      this.props.setAppBarTitle(nextPact.name);
     }
   }
 
+  getPact = (props) => {
+    const {pacts} = props;
+    const {pactId} = props.match.params;
+    return pacts && pacts[pactId];
+  }
+
+  getWindows = () => {
+    const {windows} = this.props;
+    const {pactId} = this.props.match.params;
+    return windows && windows[pactId];
+  }
+
   getCurrentWindow = (windows, today) => {
+    if (!windows || !today) return;
     for (let [windowId, window] of Object.entries(windows)) {
       const {startsOn, endsOn} = window;
       if (startsOn <= today && today < endsOn) {
@@ -44,7 +60,8 @@ class Pact extends Component {
   }
 
   startRun = () => {
-    const {history, today, windows} = this.props;
+    const {history, today} = this.props;
+    const windows = this.getWindows();
     const currentWindow = this.getCurrentWindow(windows, today);
     if (currentWindow) {
       const {pactId} = this.props.match.params;
@@ -54,10 +71,11 @@ class Pact extends Component {
   }
 
   render() {
-    const {pact, today, windows, currentUid} = this.props;
+    const {today, currentUid} = this.props;
+    const windows = this.getWindows();
+    const pact = this.getPact(this.props);
     if (!pact) return null;
-    const currentWindow = windows &&
-      this.getCurrentWindow(windows, today);
+    const currentWindow = this.getCurrentWindow(windows, today);
     const currentWindowCompleted = currentWindow && currentWindow.completed &&
       currentWindow.completed[currentUid] !== undefined;
     const currentWindowCompletedOn = currentWindowCompleted &&
@@ -237,18 +255,11 @@ class Pact extends Component {
   }
 }
 
-const populates = [
-  {
-    child: 'members',
-    root: 'users'
-  },
-]
-
 export default compose(
   connect(
     state => ({
       today: state.firebase.data.today,
-      pact: populate(state.firebase, 'pact', populates),
+      pacts: state.firebase.data.pacts,
       windows: state.firebase.data.windows,
       currentUid: state.firebase.auth.uid,
     }),
@@ -259,15 +270,5 @@ export default compose(
     }
   ),
   withRouter,
-  firebaseConnect(({match: {params: {pactId}}}) => ([
-    {
-      path: `pacts/${pactId}`,
-      storeAs: 'pact',
-      populates,
-    },
-    {
-      path: `windows/${pactId}`,
-      storeAs: 'windows',
-    },
-  ]))
+  firebaseConnect(),
 )(Pact);

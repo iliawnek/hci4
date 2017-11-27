@@ -5,9 +5,20 @@ import {cyan500} from 'material-ui/styles/colors';
 import {connect} from 'react-redux';
 
 class Leaderboard extends Component {
-  render () {
-    const {pact, windows, currentWindow, today} = this.props;
+  getMembers = () => {
+    const {pact, users} = this.props;
+    if (!pact || !users) return;
     const {members} = pact;
+    const membersObject = {};
+    Object.keys(members).forEach(uid => {
+      membersObject[uid] = users[uid];
+    })
+    return membersObject;
+  };
+
+  render () {
+    const {windows, currentWindow, today} = this.props;
+    const members = this.getMembers();
 
     // calculate points
     let leaderboard = Object.entries(members).map(([uid, {displayName}]) => {
@@ -30,9 +41,6 @@ class Leaderboard extends Component {
 
     // sort windows
     const windowColumnValues = Object.values(windows).sort((a, b) => (a.startsOn > b.startsOn ? 1 : -1));
-
-    console.log('leaderboard', leaderboard)
-    console.log('windowColumnValues', windowColumnValues)
 
     const styles = {
       leaderboard: {
@@ -151,4 +159,5 @@ class Leaderboard extends Component {
 
 export default connect(state => ({
   today: state.firebase.data.today,
+  users: state.firebase.data.users,
 }))(Leaderboard);

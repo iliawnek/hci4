@@ -3,7 +3,9 @@ import { Card, CardTitle, CardText } from "material-ui/Card";
 import Chip from "material-ui/Chip";
 import RaisedButton from 'material-ui/RaisedButton';
 import Moment from "react-moment";
-import { withRouter }  from 'react-router';
+import { withRouter } from 'react-router';
+import { compose } from 'redux';
+import { connect } from 'react-redux';
 
 class PactCard extends Component {
   handleClickCard = () => {
@@ -12,7 +14,9 @@ class PactCard extends Component {
   }
 
   render() {
-    const {name, endsOn, frequency, runCount, members} = this.props;
+    const {users, pact} = this.props;
+    if (!pact) return null;
+    const {name, endsOn, frequency, runCount, members} = pact;
 
     const styles = {
       metrics: {
@@ -45,12 +49,13 @@ class PactCard extends Component {
       }
     };
 
-    const chips = members && Object.entries(members).map(([uid, user]) => (
+    console.log(members)
+    const chips = members && Object.keys(members).map(uid => (
       <Chip
         key={uid}
         style={styles.chip}
       >
-        {user.displayName}
+        {users && users[uid] && users[uid].displayName}
       </Chip>
     ));
 
@@ -95,4 +100,9 @@ class PactCard extends Component {
   }
 }
 
-export default withRouter(PactCard);
+export default compose(
+  withRouter,
+  connect(state => ({
+    users: state.firebase.data.users,
+  }))
+)(PactCard);
