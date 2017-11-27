@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
-import { setAppBarTitle } from "../store/reducers/ui";
+import { setAppBarTitle, hideMenuButton, showMenuButton } from "../store/reducers/ui";
+import Paper from "material-ui/Paper";
 import TextField from "material-ui/TextField";
 import RaisedButton from "material-ui/RaisedButton";
 import FlatButton from "material-ui/FlatButton";
@@ -21,6 +22,11 @@ class Setup extends Component {
 
   componentDidMount() {
     this.props.setAppBarTitle("Setting up");
+    this.props.hideMenuButton();
+  }
+
+  componentWillUnmount() {
+    this.props.showMenuButton();
   }
 
   handleNext = () => {
@@ -52,8 +58,15 @@ class Setup extends Component {
   };
 
   handleChangeDistance = event => {
+    const {value} = event.target;
+    let newDistance;
+    if (value === "") newDistance = value;
+    else {
+      newDistance = parseFloat(value);
+      if (newDistance <= 0) return;
+    }
     this.setState({
-      distance: parseFloat(event.target.value)
+      distance: newDistance
     });
   };
 
@@ -63,22 +76,29 @@ class Setup extends Component {
       timeLimit: this.state.timeLimit,
       distance: this.state.distance,
     });
-    // this.props.history.push("/create-pact");
+    this.props.history.push("/pacts");
   };
 
   renderStepActions(step) {
-    const { stepIndex } = this.state;
-    const finished = stepIndex === 2;
+    const { stepIndex, displayName, distance, timeLimit } = this.state;
+    const finished = stepIndex === 3;
 
     return (
       <div style={{ margin: "12px 0" }}>
         <RaisedButton
-          label={finished ? "Create" : "Next"}
+          label={finished ? "Finish" : "Next"}
           disableTouchRipple={true}
           disableFocusRipple={true}
           primary={true}
           onClick={finished ? this.finish : this.handleNext}
           style={{ marginRight: 12 }}
+          disabled={
+            (stepIndex === 1 && displayName === "") ||
+            (stepIndex === 2 && (
+              distance === "" ||
+              timeLimit <= 0
+            ))
+          }
         />
         {step > 0 && (
           <FlatButton
@@ -99,8 +119,8 @@ class Setup extends Component {
     const styles = {
       setup: {
         width: "100%",
-        height: "100%",
-        margin: 16,
+        padding: 16,
+        paddingBottom: 24,
         boxSizing: "border-box"
       },
       text: {
@@ -117,12 +137,22 @@ class Setup extends Component {
     };
 
     return (
-      <div style={styles.setup}>
+      <Paper style={styles.setup}>
         <Stepper
           style={styles.stepper}
           activeStep={stepIndex}
           orientation="vertical"
         >
+          <Step>
+            <StepLabel>About the app</StepLabel>
+            <StepContent>
+              <p>Create pacts with friends and family where everybody in the pact must run regularly.</p>
+              <p>Build up run streaks by going for runs consistently.</p>
+              <p>Compete with others in the pact to come out on top of the pact's leaderboard!</p>
+              {this.renderStepActions(0)}
+            </StepContent>
+          </Step>
+
           <Step>
             <StepLabel>Choose a display name</StepLabel>
             <StepContent>
@@ -133,7 +163,7 @@ class Setup extends Component {
                 value={this.state.displayName}
                 onChange={this.handleChangeDisplayName}
               />
-              {this.renderStepActions(0)}
+              {this.renderStepActions(1)}
             </StepContent>
           </Step>
 
@@ -141,12 +171,15 @@ class Setup extends Component {
             <StepLabel>Choose your target run</StepLabel>
             <StepContent>
               <p>
-                Your <b>target run</b> defines the run you must aim to finish to{" "}
-                <b>earn points</b>.
+                Worried about not being able to keep up others? Don't worry!
+                That's exactly why we have the concept of a <b>target run</b>.
               </p>
               <p>
-                It should be easy enough to be achievable, but difficult enough
-                to challenging!
+                Your <b>target run</b> defines the minimum run that counts towards a completed run within a pact.
+              </p>
+              <p>
+                It should be easy enough to be consistently achievable,
+                but difficult enough to be challenging!
               </p>
               <TextField
                 type="number"
@@ -163,29 +196,33 @@ class Setup extends Component {
                 value={this.state.timeLimitDate}
                 onChange={this.handleChangeTimeLimitDate}
               />
-              {this.renderStepActions(1)}
+              {this.renderStepActions(2)}
             </StepContent>
           </Step>
 
           <Step>
-            <StepLabel>Create a running pact</StepLabel>
+            <StepLabel>Finished!</StepLabel>
             <StepContent>
               <p>
-                Create a <b>running pact</b> with your friends and family in
-                order to <b>begin earning points</b>!
+                Now create your own running pact, or ask somebody else to invite you to theirs.
               </p>
-              {this.renderStepActions(2)}
+              <p>
+                Have fun!
+              </p>
+              {this.renderStepActions(3)}
             </StepContent>
           </Step>
         </Stepper>
-      </div>
+      </Paper>
     );
   }
 }
 
 export default compose(
   connect(null, {
-    setAppBarTitle
+    setAppBarTitle,
+    hideMenuButton,
+    showMenuButton
   }),
   firebaseConnect(),
   withRouter
