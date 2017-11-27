@@ -34,7 +34,7 @@ class Pacts extends Component {
 
   render() {
     const {showEnded} = this.state;
-    const {today, pacts} = this.props;
+    const {today, pacts, currentUid} = this.props;
 
     const styles = {
       pacts: {
@@ -57,6 +57,7 @@ class Pacts extends Component {
     const pactCards = pacts && today &&
       Object.entries(pacts)
         .filter(([pactId, pact]) => (
+          pact.members[currentUid] &&
           showEnded ? pact.endsOn <= today : today < pact.endsOn
         ))
         .map(([pactId, pact]) => (
@@ -105,6 +106,7 @@ export default compose(
     state => ({
       pacts: populate(state.firebase, 'pacts', populates),
       today: state.firebase.data.today,
+      currentUid: state.firebase.auth.uid,
     }),
     {
       setAppBarTitle
