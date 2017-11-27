@@ -7,7 +7,6 @@ import Login from "../pages/Login";
 import Setup from "../pages/Setup";
 import Pacts from "../pages/Pacts";
 import CreatePact from '../pages/CreatePact'
-import User from "../pages/User";
 import Pact from "../pages/Pact";
 import Run from "../pages/Run";
 import ControlPanel from "../pages/ControlPanel";
@@ -20,7 +19,6 @@ class Routes extends Component {
         <Route path="/setup" component={Setup} />
         <Route path="/pacts" component={Pacts} />
         <Route path="/create-pact" component={CreatePact} />
-        <Route path="/user/:uid" component={User} />
         <Route exact path="/pact/:pactId" component={Pact} />
         <Route exact path="/pact/:pactId/run/:windowId" component={Run} />
         <Route path="/control-panel" component={ControlPanel} />

@@ -3,11 +3,13 @@ import { connect } from "react-redux";
 import AppBar from "material-ui/AppBar";
 import Drawer from "material-ui/Drawer";
 import { List, ListItem } from "material-ui/List";
-import Avatar from "material-ui/Avatar";
 import CloseIcon from "material-ui/svg-icons/navigation/close";
 import IconButton from "material-ui/IconButton";
+import IconMenu from "material-ui/IconMenu";
+import MenuItem from "material-ui/MenuItem";
 import Divider from "material-ui/Divider";
-import PactsIcon from "material-ui/svg-icons/social/group";
+import RunIcon from "material-ui/svg-icons/maps/directions-run";
+import MoreIcon from "material-ui/svg-icons/navigation/more-vert";
 import { withRouter } from "react-router";
 import { openSidebar, closeSidebar } from "../store/reducers/ui";
 import { compose } from 'redux';
@@ -33,12 +35,15 @@ class Header extends Component {
     this.props.closeSidebar();
   }
 
+  signOut = () => {
+    this.props.firebase.auth().signOut();
+    this.props.closeSidebar();
+    this.props.history.push('/');
+    window.location.reload();
+  }
+
   render() {
     const {uid, email, displayName} = this.props;
-
-    const firstLetter = displayName ?
-      displayName.charAt(0) :
-      (email && email.charAt(0));
 
     const closeButton = (
       <IconButton
@@ -53,10 +58,18 @@ class Header extends Component {
       return (
         <ListItem
           {...listItemProps}
-          onClick={this.linkFromSidebar.bind(this, to)}
+          onClick={to && this.linkFromSidebar.bind(this, to)}
         />
       )
     }
+
+    const signOutMenuButton = (
+      <IconMenu iconButtonElement={(
+        <IconButton><MoreIcon/></IconButton>
+      )}>
+        <MenuItem onClick={this.signOut}>Sign out</MenuItem>
+      </IconMenu>
+    )
 
     const sidebar = this.props.menuButtonShown && (
       <Drawer
@@ -66,10 +79,9 @@ class Header extends Component {
       >
         <List>
           {createSidebarLink({
-            to: `/user/${uid}`,
             primaryText: displayName || email,
             secondaryText: displayName ? email : null,
-            leftAvatar: <Avatar>{firstLetter}</Avatar>
+            rightIconButton: (signOutMenuButton)
           })}
         </List>
         <Divider/>
@@ -78,7 +90,7 @@ class Header extends Component {
             to: '/pacts',
             primaryText: 'Pacts',
             secondaryText: '# pacts active',
-            leftIcon: <PactsIcon/>,
+            leftIcon: <RunIcon/>,
           })}
         </List>
       </Drawer>
