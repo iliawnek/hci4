@@ -1,8 +1,10 @@
 import React, {Component} from 'react';
 import DoneIcon from 'material-ui/svg-icons/action/done';
 import XIcon from 'material-ui/svg-icons/navigation/close';
-import {cyan500} from 'material-ui/styles/colors';
+import {cyan100, pink100} from 'material-ui/styles/colors';
 import {connect} from 'react-redux';
+import RunIcon from 'material-ui/svg-icons/maps/directions-run';
+import ordinal from 'ordinal';
 
 class Leaderboard extends Component {
   getMembers = () => {
@@ -17,7 +19,7 @@ class Leaderboard extends Component {
   };
 
   render () {
-    const {windows, currentWindow, today} = this.props;
+    const {windows, currentWindow, today, currentUid} = this.props;
     const members = this.getMembers();
 
     // calculate points
@@ -39,7 +41,23 @@ class Leaderboard extends Component {
       return b.points - a.points;
     })
 
-    // sort windows
+    // calculate positions
+    let previousPoints = 0;
+    let previousPosition = 0;
+    leaderboard = leaderboard.map((member, i) => {
+      let position = i + 1;
+      if (i !== 0 && (previousPoints === member.points)) {
+        position = previousPosition;
+      }
+      previousPoints = member.points;
+      previousPosition = position;
+      return {
+        ...member,
+        position,
+      }
+    })
+
+    // sort windows in date order
     const windowColumnValues = Object.values(windows).sort((a, b) => (a.startsOn > b.startsOn ? 1 : -1));
 
     const styles = {
@@ -49,9 +67,11 @@ class Leaderboard extends Component {
         whiteSpace: 'nowrap',
         marginBottom: 8,
         fontSize: 12,
-        // border: '1px solid red',
-        paddingLeft: 16,
-        paddingRight: 16,
+      },
+      scrollable: {
+        display: 'flex',
+        overflowX: 'auto',
+        whiteSpace: 'nowrap',
       },
       column: {
         display: 'flex',
@@ -62,7 +82,6 @@ class Leaderboard extends Component {
         alignItems: 'center',
         justifyContent: 'center',
         height: 16,
-        // border: '1px solid black',
         width: 'auto',
         padding: 12,
       },
@@ -71,87 +90,157 @@ class Leaderboard extends Component {
         fontWeight: 'bold',
         color: 'rgba(0,0,0,0.54)',
       },
+      positionTitleCell: {
+        justifyContent: 'center',
+      },
       windowTitleCell: {
         justifyContent: 'center',
         width: 16,
       },
       nameCell: {
         justifyContent: 'flex-end',
-        borderTopWidth: 1,
-        borderTopColor: 'rgba(0,0,0,0.3)',
-        borderTopStyle: 'solid',
       },
       pointsCell: {
-        justifyContent: 'flex-end',
-        borderTopWidth: 1,
-        borderTopColor: 'rgba(0,0,0,0.3)',
-        borderTopStyle: 'solid',
+      },
+      pointsTitleCell: {
+        width: 16,
       },
       windowCell: {
         width: 16,
+      },
+      lineTopCell: {
         borderTopWidth: 1,
         borderTopColor: 'rgba(0,0,0,0.3)',
         borderTopStyle: 'solid',
       },
+      lineRightCell: {
+        borderRightWidth: 1,
+        borderRightColor: 'rgba(0,0,0,0.3)',
+        borderRightStyle: 'solid',
+      },
       currentWindowCell: {
-        backgroundColor: cyan500,
-      }
+        backgroundColor: pink100,
+      },
+      userCell: {
+        backgroundColor: cyan100,
+        fontWeight: 'bold',
+      },
     };
+
+    const positionColumn = (
+      <div style={styles.column}>
+        <div style={{
+          ...styles.cell,
+          ...styles.titleCell,
+          ...styles.positionTitleCell,
+        }}>
+          #
+        </div>
+        {leaderboard.map((member, i) => {
+          const isCurrentUser = member.uid === currentUid;
+          return (
+            <div style={{
+              ...styles.cell,
+              ...styles.lineTopCell,
+              ...(isCurrentUser && styles.userCell),
+            }} key={i}>
+              {ordinal(member.position)}
+            </div>
+          )
+        })}
+      </div>
+    )
 
     const nameColumn = (
       <div style={styles.column}>
-        <div style={{...styles.cell, ...styles.titleCell}}>
+        <div style={{
+          ...styles.cell,
+          ...styles.titleCell,
+        }}>
           NAME
         </div>
-        {leaderboard.map((member, i) => (
-          <div style={{...styles.cell, ...styles.nameCell}} key={i}>
-            {member.displayName}
-          </div>
-        ))}
+        {leaderboard.map((member, i) => {
+          const isCurrentUser = member.uid === currentUid;
+          return (
+            <div style={{
+              ...styles.cell,
+              ...styles.nameCell,
+              ...styles.lineTopCell,
+              ...(isCurrentUser && styles.userCell),
+            }} key={i}>
+              {member.displayName}
+            </div>
+          )
+        })}
       </div>
     )
 
     const pointsColumn = (
       <div style={styles.column}>
-        <div style={{...styles.cell, ...styles.titleCell}}>
-          RUNS
-        </div>
-        {leaderboard.map((member, i) => (
-          <div style={{...styles.cell, ...styles.pointsCell}} key={i}>
-            {member.points}
-          </div>
-        ))}
-      </div>
-    )
-
-    const windowColumns = windowColumnValues.map((window, i) => (
-      <div style={styles.column} key={i}>
-        <div style={{...styles.cell, ...styles.titleCell, ...styles.windowTitleCell}}>
-          {window.number}
+        <div style={{
+          ...styles.cell,
+          ...styles.titleCell,
+          ...styles.pointsTitleCell,
+          ...styles.lineRightCell,
+        }}>
+          <RunIcon color="rgba(0,0,0,0.54)"/>
         </div>
         {leaderboard.map((member, i) => {
-          const completed = window.completed && window.completed[member.uid];
-          const isCurrentWindow = currentWindow && (window.number === currentWindow.number);
-          const hasPassed = window.endsOn <= today;
+          const isCurrentUser = member.uid === currentUid;
           return (
             <div style={{
               ...styles.cell,
-              ...styles.windowCell,
-              ...(isCurrentWindow && styles.currentWindowCell),
+              ...styles.pointsCell,
+              ...styles.lineTopCell,
+              ...styles.lineRightCell,
+              ...(isCurrentUser && styles.userCell),
             }} key={i}>
-              {completed && <DoneIcon {...(isCurrentWindow && {color: 'white'})}/>}
-              {!completed && hasPassed && <XIcon color="rgba(0,0,0,0.2)"/>}
+              {member.points}
             </div>
           )
         })}
       </div>
-    ))
+    )
+
+    const windowColumns = windowColumnValues.map((window, i) => {
+      const isCurrentWindow = currentWindow && (window.number === currentWindow.number);
+      return (
+        <div style={styles.column} key={i}>
+          <div style={{
+            ...styles.cell,
+            ...styles.titleCell,
+            ...styles.windowTitleCell,
+            ...(isCurrentWindow && styles.currentWindowCell),
+          }}>
+            {window.number}
+          </div>
+          {leaderboard.map((member, i) => {
+            const completed = window.completed && window.completed[member.uid];
+            const hasPassed = window.endsOn <= today;
+            return (
+              <div style={{
+                ...styles.cell,
+                ...styles.windowCell,
+                ...styles.lineTopCell,
+                ...(isCurrentWindow && styles.currentWindowCell),
+              }} key={i}>
+                {completed && <DoneIcon/>}
+                {!completed && hasPassed && <XIcon color="rgba(0,0,0,0.2)"/>}
+              </div>
+            )
+          })}
+        </div>
+      )
+    })
 
     return (
       <div style={styles.leaderboard}>
         {nameColumn}
+        {positionColumn}
         {pointsColumn}
-        {windowColumns}
+        <div style={styles.scrollable}>
+          {windowColumns}
+        </div>
       </div>
     );
   }
@@ -160,4 +249,5 @@ class Leaderboard extends Component {
 export default connect(state => ({
   today: state.firebase.data.today,
   users: state.firebase.data.users,
+  currentUid: state.firebase.auth.uid,
 }))(Leaderboard);
