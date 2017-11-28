@@ -74,7 +74,11 @@ class Pact extends Component {
       let existingStreak = 0;
       if (currentWindow.number > 0) {
         let windowCursor = this.getWindowByNumber(currentWindow.number - 1);
-        while (windowCursor.completed && windowCursor.completed[currentUid] && windowCursor.number >= 0) {
+        while (
+          windowCursor &&
+          windowCursor.completed &&
+          windowCursor.completed[currentUid] &&
+          windowCursor.number >= 0) {
           existingStreak++;
           windowCursor = this.getWindowByNumber(windowCursor.number - 1);
         }
