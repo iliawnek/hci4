@@ -43,10 +43,11 @@ class Header extends Component {
   }
 
   render() {
-    const {uid, email, displayName, pacts, today} = this.props;
+    const {uid, email, pacts, today, users} = this.props;
     const activePactCount = pacts && Object.values(pacts).reduce((count, pact) => {
       return count + ((pact.members[uid] && today < pact.endsOn) ? 1 : 0);
     }, 0)
+    const displayName = users && users[uid] && users[uid].displayName;
 
     const closeButton = (
       <IconButton
@@ -122,7 +123,7 @@ export default compose(
       closeTo: state.ui.closeTo,
       uid: state.firebase.auth && state.firebase.auth.uid,
       email: state.firebase.auth && state.firebase.auth.email,
-      displayName: state.firebase.profile && state.firebase.profile.displayName,
+      users: state.firebase.data.users,
       menuButtonShown: state.ui.menuButtonShown,
       pacts: state.firebase.data.pacts,
       today: state.firebase.data.today,
