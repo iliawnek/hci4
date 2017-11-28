@@ -46,7 +46,9 @@ class Pact extends Component {
     return windows && windows[pactId];
   }
 
-  getCurrentWindow = (windows, today) => {
+  getCurrentWindow = () => {
+    const {today} = this.props;
+    const windows = this.getWindows();
     if (!windows || !today) return;
     for (let [windowId, window] of Object.entries(windows)) {
       const {startsOn, endsOn} = window;
@@ -59,10 +61,32 @@ class Pact extends Component {
     }
   }
 
-  startRun = () => {
-    const {history, today} = this.props;
+  getWindowByNumber = (number) => {
     const windows = this.getWindows();
-    const currentWindow = this.getCurrentWindow(windows, today);
+    if (windows) return Object.values(windows).find(window => window.number === number);
+  }
+
+  getCurrentStreak = () => {
+    const {currentUid} = this.props;
+    const currentWindow = this.getCurrentWindow();
+    if (currentWindow && currentUid) {
+      // existing streak
+      let existingStreak = 0;
+      if (currentWindow.number > 0) {
+        let windowCursor = this.getWindowByNumber(currentWindow.number - 1);
+        while (windowCursor.completed && windowCursor.completed[currentUid] && windowCursor.number >= 0) {
+          existingStreak++;
+          windowCursor = this.getWindowByNumber(windowCursor.number - 1);
+        }
+      }
+      const currentWindowCompleted = currentWindow.completed && currentWindow.completed[currentUid];
+      return existingStreak + (currentWindowCompleted ? 1 : 0);
+    }
+  }
+
+  startRun = () => {
+    const {history} = this.props;
+    const currentWindow = this.getCurrentWindow();
     if (currentWindow) {
       const {pactId} = this.props.match.params;
       const {id: windowId} = currentWindow;
@@ -75,7 +99,7 @@ class Pact extends Component {
     const windows = this.getWindows();
     const pact = this.getPact(this.props);
     if (!pact) return null;
-    const currentWindow = this.getCurrentWindow(windows, today);
+    const currentWindow = this.getCurrentWindow();
     const currentWindowCompleted = currentWindow && currentWindow.completed &&
       currentWindow.completed[currentUid] !== undefined;
     const currentWindowCompletedOn = currentWindowCompleted &&
@@ -88,6 +112,7 @@ class Pact extends Component {
     const dateFormat = 'Do MMMM YYYY';
     const lastWindow = currentWindow &&
       pact.runCount === currentWindow.number;
+    const currentStreak = this.getCurrentStreak();
 
     const styles = {
       pact: {
@@ -161,7 +186,7 @@ class Pact extends Component {
         </p>
         <p>
           You have <b>{moment(today).to(currentWindow.endsOn, true)} left</b> to complete the current run.
-          You're currently on a <b>#-run streak</b>. Keep it going!
+          {currentStreak > 0 && <span> You're currently on a <b>{currentStreak}-run streak</b>. Keep it going!</span>}
         </p>
       </div>
     )
@@ -183,7 +208,7 @@ class Pact extends Component {
           }).
         </p>
         <p>
-          You increased your streak to <b># runs in a row</b>!
+          You're now on a <b>{currentStreak}-run streak</b>!
         </p>
       </div>
     )
