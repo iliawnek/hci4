@@ -4,6 +4,7 @@ import { setAppBarTitle, hideMenuButton, showMenuButton } from "../store/reducer
 import LoginForm from "../components/LoginForm";
 import { withRouter } from "react-router";
 import Card from 'material-ui/Card';
+import { compose } from 'redux';
 
 class Login extends Component {
   componentDidMount() {
@@ -39,7 +40,7 @@ class Login extends Component {
   }
 }
 
-export default withRouter(
+export default compose(
   connect(
     ({firebase: {auth: {isEmpty, isLoaded}}}) => ({
       userExists: isLoaded && !isEmpty,
@@ -49,5 +50,6 @@ export default withRouter(
       hideMenuButton,
       showMenuButton
     }
-  )(Login)
-);
+  ),
+  withRouter,
+)(Login);
