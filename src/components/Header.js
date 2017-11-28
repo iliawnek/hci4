@@ -43,7 +43,10 @@ class Header extends Component {
   }
 
   render() {
-    const {uid, email, displayName} = this.props;
+    const {uid, email, displayName, pacts, today} = this.props;
+    const activePactCount = pacts && Object.values(pacts).reduce((count, pact) => {
+      return count + ((pact.members[uid] && today < pact.endsOn) ? 1 : 0);
+    }, 0)
 
     const closeButton = (
       <IconButton
@@ -89,7 +92,7 @@ class Header extends Component {
           {createSidebarLink({
             to: '/pacts',
             primaryText: 'Pacts',
-            secondaryText: '# pacts active',
+            secondaryText: `${activePactCount} ${activePactCount === 1 ? 'pact' : 'pacts'} active`,
             leftIcon: <RunIcon/>,
           })}
         </List>
@@ -121,6 +124,8 @@ export default compose(
       email: state.firebase.auth && state.firebase.auth.email,
       displayName: state.firebase.profile && state.firebase.profile.displayName,
       menuButtonShown: state.ui.menuButtonShown,
+      pacts: state.firebase.data.pacts,
+      today: state.firebase.data.today,
     }),
     {
       openSidebar,
