@@ -49,7 +49,6 @@ class PactCard extends Component {
       }
     };
 
-    console.log(members)
     const chips = members && Object.keys(members).map(uid => (
       <Chip
         key={uid}
