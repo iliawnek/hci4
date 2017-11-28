@@ -17,6 +17,7 @@ import RaisedButton from "material-ui/RaisedButton";
 class Run extends Component {
   state = {
     started: false,
+    finishClickable: false,
   }
 
   componentDidMount() {
@@ -34,6 +35,18 @@ class Run extends Component {
   startRun = () => {
     this.setState({started: true});
     this.props.hideAppBar();
+  }
+
+  clickFinish = () => {
+    const {finishClickable} = this.state;
+    if (finishClickable) {
+      this.finishRun();
+    } else {
+      this.setState({finishClickable: true});
+      setTimeout(() => {
+        this.setState({finishClickable: false})
+      }, 500)
+    }
   }
 
   finishRun = () => {
@@ -67,6 +80,14 @@ class Run extends Component {
       buttonLabel: {
         fontSize: 24,
       },
+      hint: {
+        position: 'fixed',
+        width: '100%',
+        textAlign: 'center',
+        bottom: 20,
+        fontSize: 12,
+        color: 'rgba(255,255,255,0.5)',
+      },
     };
 
     const startButton = (
@@ -85,13 +106,20 @@ class Run extends Component {
         style={styles.button}
         labelStyle={styles.buttonLabel}
         secondary={true}
-        onClick={this.finishRun}
+        onClick={this.clickFinish}
       />
+    )
+
+    const doublePressHint = (
+      <div style={styles.hint}>
+        (double press to finish)
+      </div>
     )
 
     return (
       <div style={styles.run}>
         {started ? finishButton : startButton}
+        {started && doublePressHint}
       </div>
     );
   }
