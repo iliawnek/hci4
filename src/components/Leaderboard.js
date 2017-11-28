@@ -22,24 +22,21 @@ class Leaderboard extends Component {
     this.scrollToCurrentWindow(this.props);
   }
 
-  // componentWillReceiveProps(nextProps) {
-  //   const {currentWindow: thisWindow} = this.props;
-  //   const {currentWindow: nextWindow} = nextProps;
-  //   const currentWindowChanged = (
-  //     (!thisWindow && nextWindow) ||
-  //     (thisWindow && nextWindow && (thisWindow.number !== nextWindow.number))
-  //   )
-  //   if (currentWindowChanged) {
-  //     this.scrollToCurrentWindow(nextProps);
-  //   }
-  // }
+  componentWillReceiveProps(nextProps) {
+    const {currentWindow: thisWindow, pact: thisPact} = this.props;
+    const {currentWindow: nextWindow, pact: nextPact} = nextProps;
+    if ((!thisPact || !thisWindow) && nextPact && nextWindow) {
+      this.scrollToCurrentWindow(nextProps);
+    }
+  }
 
   scrollToCurrentWindow = (props) => {
-    const {currentWindow: {number}, pact: {runCount}} = props;
+    const {currentWindow, pact} = props;
+    if (!currentWindow || !pact) return;
     const columnWidth = 40;
     const viewableWidth = this.scrollableRef.clientWidth;
-    const totalWidth = runCount * columnWidth;
-    const offset = (runCount - number - 1) * columnWidth;
+    const totalWidth = pact.runCount * columnWidth;
+    const offset = (pact.runCount - currentWindow.number - 1) * columnWidth;
     this.scrollableRef.scrollLeft = totalWidth - offset - viewableWidth;
   }
 
