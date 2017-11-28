@@ -1,11 +1,12 @@
 import React, { Component } from "react";
 import { Card, CardTitle, CardText } from "material-ui/Card";
-import Chip from "material-ui/Chip";
 import RaisedButton from 'material-ui/RaisedButton';
-import Moment from "react-moment";
+import Chip from 'material-ui/Chip';
 import { withRouter } from 'react-router';
 import { compose } from 'redux';
 import { connect } from 'react-redux';
+import moment from 'moment';
+import {pinkA400} from 'material-ui/styles/colors';
 
 class PactCard extends Component {
   handleClickCard = () => {
@@ -14,42 +15,59 @@ class PactCard extends Component {
   }
 
   render() {
-    const {users, pact} = this.props;
+    const {pact,
+      currentWindow,
+      today,
+      currentWindowCompleted,
+      daysUntilCurrentWindowEnds,
+      pactEnded,
+      users,
+    } = this.props;
     if (!pact) return null;
-    const {name, endsOn, frequency, runCount, members} = pact;
+
+    const dateFormat = 'Do MMMM YYYY';
 
     const styles = {
-      metrics: {
-        display: 'flex',
-        justifyContent: 'space-evenly',
-        paddingBottom: 32,
-      },
       chip: {
-        margin: 4,
+        marginRight: 4,
       },
       chips: {
         display: 'flex',
         flexWrap: 'wrap',
-        justifyContent: 'center',
+        marginLeft: 16,
+        marginRight: 16,
       },
-      textCenter: { textAlign: "center" },
-      display2: { fontSize: 45 },
-      svgIconContainer: {
-        display: "inline-block",
-        height: 28,
-        verticalAlign: "middle"
+      card: {
+        paddingBottom: 16,
       },
       cardButton: {
         height: 'auto',
         width: '100%',
-        marginBottom: 16,
+        marginBottom: 8,
       },
       cardInnerButton: {
         textAlign: 'left',
-      }
+      },
+      title: {
+      },
+      subtitle: {
+        fontSize: 14,
+        fontWeight: (() => {
+          if (!currentWindowCompleted && daysUntilCurrentWindowEnds === 1) return 'bold'
+          else return 'normal'
+        })(),
+        color: (() => {
+          if (!currentWindowCompleted) {
+            if (daysUntilCurrentWindowEnds === 1) return pinkA400
+            else return 'black'
+          } else {
+            return 'rgba(0,0,0,0.5)'
+          }
+        })(),
+      },
     };
 
-    const chips = members && Object.keys(members).map(uid => (
+    const chips = pact.members && Object.keys(pact.members).map(uid => (
       <Chip
         key={uid}
         style={styles.chip}
@@ -57,6 +75,14 @@ class PactCard extends Component {
         {users && users[uid] && users[uid].displayName}
       </Chip>
     ));
+
+    const subtitle = (() => {
+      if (pactEnded) return `ended on ${moment(pact.endsOn).format(dateFormat)}`
+      if (currentWindow) {
+        if (currentWindowCompleted) return `next run unlocks ${moment(today).to(currentWindow.endsOn)}`
+        else return `${moment(today).to(currentWindow.endsOn, true)} remaining to run`
+      }
+    })()
 
     return (
       <RaisedButton
@@ -66,33 +92,14 @@ class PactCard extends Component {
       >
         <Card style={styles.card}>
           <CardTitle
-            title={name}
-            subtitle={
-              <span>
-                <Moment parse="YYYY-MM-DD" fromNow ago>
-                  {endsOn}
-                </Moment>{" "}
-                remaining
-              </span>
-            }
+            title={pact.name}
+            subtitle={subtitle}
+            titleStyle={styles.title}
+            subtitleStyle={styles.subtitle}
           />
-          <CardText>
-            <div style={styles.metrics}>
-              <div style={styles.textCenter}>
-                <span style={styles.display2}>{frequency}</span>
-                <br />days per run
-              </div>
-              <div style={styles.textCenter}>
-                <span style={styles.display2}>{runCount}</span>
-                <br />
-                {"run" + (runCount > 1 ? "s" : "")}
-              </div>
-            </div>
-
-            <div style={styles.chips}>
-              {chips}
-            </div>
-          </CardText>
+          <div style={styles.chips}>
+            {chips}
+          </div>
         </Card>
       </RaisedButton>
     );
@@ -103,5 +110,7 @@ export default compose(
   withRouter,
   connect(state => ({
     users: state.firebase.data.users,
+    currentUid: state.firebase.auth.uid,
+    today: state.firebase.data.today,
   }))
 )(PactCard);
