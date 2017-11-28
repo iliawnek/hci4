@@ -18,6 +18,31 @@ class Leaderboard extends Component {
     return membersObject;
   };
 
+  componentDidMount() {
+    this.scrollToCurrentWindow(this.props);
+  }
+
+  // componentWillReceiveProps(nextProps) {
+  //   const {currentWindow: thisWindow} = this.props;
+  //   const {currentWindow: nextWindow} = nextProps;
+  //   const currentWindowChanged = (
+  //     (!thisWindow && nextWindow) ||
+  //     (thisWindow && nextWindow && (thisWindow.number !== nextWindow.number))
+  //   )
+  //   if (currentWindowChanged) {
+  //     this.scrollToCurrentWindow(nextProps);
+  //   }
+  // }
+
+  scrollToCurrentWindow = (props) => {
+    const {currentWindow: {number}, pact: {runCount}} = props;
+    const columnWidth = 40;
+    const viewableWidth = this.scrollableRef.clientWidth;
+    const totalWidth = runCount * columnWidth;
+    const offset = (runCount - number - 1) * columnWidth;
+    this.scrollableRef.scrollLeft = totalWidth - offset - viewableWidth;
+  }
+
   render () {
     const {windows, currentWindow, today, currentUid} = this.props;
     const members = this.getMembers();
@@ -82,7 +107,7 @@ class Leaderboard extends Component {
         alignItems: 'center',
         justifyContent: 'center',
         height: 16,
-        width: 'auto',
+        width: 16,
         padding: 12,
       },
       titleCell: {
@@ -90,23 +115,24 @@ class Leaderboard extends Component {
         fontWeight: 'bold',
         color: 'rgba(0,0,0,0.54)',
       },
+      nameTitleCell: {
+        width: 'auto',
+      },
       positionTitleCell: {
         justifyContent: 'center',
       },
       windowTitleCell: {
         justifyContent: 'center',
-        width: 16,
       },
       nameCell: {
         justifyContent: 'flex-end',
+        width: 'auto',
       },
       pointsCell: {
       },
       pointsTitleCell: {
-        width: 16,
       },
       windowCell: {
-        width: 16,
       },
       lineTopCell: {
         borderTopWidth: 1,
@@ -156,6 +182,7 @@ class Leaderboard extends Component {
         <div style={{
           ...styles.cell,
           ...styles.titleCell,
+          ...styles.nameTitleCell,
         }}>
           NAME
         </div>
@@ -238,7 +265,10 @@ class Leaderboard extends Component {
         {nameColumn}
         {positionColumn}
         {pointsColumn}
-        <div style={styles.scrollable}>
+        <div
+          style={styles.scrollable}
+          ref={div => this.scrollableRef = div}
+        >
           {windowColumns}
         </div>
       </div>
