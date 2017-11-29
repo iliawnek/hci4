@@ -10,6 +10,7 @@ import { withRouter } from "react-router";
 import { Tabs, Tab } from "material-ui/Tabs";
 import RunIcon from "material-ui/svg-icons/maps/directions-run";
 import HistoryIcon from "material-ui/svg-icons/action/history";
+import moment from 'moment';
 
 class Pacts extends Component {
   state = {
@@ -32,9 +33,48 @@ class Pacts extends Component {
     this.setState({showEnded: true});
   };
 
-  render() {
+  getCurrentWindow = (pact, pactId) => {
+    const windows = this.props.windows && this.props.windows[pactId];
+    const {today} = this.props;
+    if (!windows || !today) return;
+    for (let [windowId, window] of Object.entries(windows)) {
+      const {startsOn, endsOn} = window;
+      if (startsOn <= today && today < endsOn) {
+        return {
+          ...window,
+          id: windowId,
+        }
+      }
+    }
+  }
+
+  getPacts = () => {
     const {showEnded} = this.state;
-    const {today, pacts, currentUid} = this.props;
+    const {pacts, today, currentUid} = this.props;
+    if (!pacts || !today || !currentUid) return;
+
+    return Object.entries(pacts).filter(([pactId, pact]) => (
+      pact.members[currentUid] && (showEnded ? pact.endsOn <= today : today < pact.endsOn)
+    )).map(([pactId, pact]) => {
+      const currentWindow = this.getCurrentWindow(pact, pactId);
+      return {
+        ...pact,
+        id: pactId,
+        currentWindow,
+        currentWindowCompleted: currentWindow && currentWindow.completed && currentWindow.completed[currentUid],
+        daysUntilCurrentWindowEnds: currentWindow && moment(currentWindow.endsOn).diff(today, 'days'),
+        pactEnded: pact.endsOn <= today,
+      }
+    }).sort((a, b) => {
+      if (!a.currentWindowCompleted && b.currentWindowCompleted) return -1
+      if (a.currentWindowCompleted && !b.currentWindowCompleted) return 1
+      if (a.endsOn < b.endsOn) return 1
+      else return -1
+    })
+  }
+
+  render() {
+    const pacts = this.getPacts();
 
     const styles = {
       pacts: {
@@ -54,15 +94,17 @@ class Pacts extends Component {
       }
     };
 
-    const pactCards = pacts && today &&
-      Object.entries(pacts)
-        .filter(([pactId, pact]) => (
-          pact.members[currentUid] &&
-          (showEnded ? pact.endsOn <= today : today < pact.endsOn)
-        ))
-        .map(([pactId, pact]) => (
-          <PactCard key={pactId} pact={pact} pactId={pactId} />
-        ));
+    const pactCards = pacts && pacts.map(pact => (
+      <PactCard
+        key={pact.id}
+        pact={pact}
+        pactId={pact.id}
+        currentWindow={pact.currentWindow}
+        currentWindowCompleted={pact.currentWindowCompleted}
+        daysUntilCurrentWindowEnds={pact.daysUntilCurrentWindowEnds}
+        pactEnded={pact.pactEnded}
+      />
+    ))
 
     const newPactFAB = (
       <FloatingActionButton
@@ -100,6 +142,7 @@ export default compose(
       pacts: state.firebase.data.pacts,
       today: state.firebase.data.today,
       currentUid: state.firebase.auth.uid,
+      windows: state.firebase.data.windows,
     }),
     {
       setAppBarTitle

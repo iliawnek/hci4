@@ -52,7 +52,8 @@ class Run extends Component {
     targetDistanceKm: 2.0,
     showError: false,
     gpsInterval: null,
-    statsIndex: -1
+    statsIndex: -1,
+    finishClickable: false
   };
 
   getLocation = () => {
@@ -96,6 +97,18 @@ class Run extends Component {
     this.props.hideAppBar();
   };
 
+  clickFinish = () => {
+    const { finishClickable } = this.state;
+    if (finishClickable) {
+      this.finishRun();
+    } else {
+      this.setState({ finishClickable: true });
+      setTimeout(() => {
+        this.setState({ finishClickable: false });
+      }, 500);
+    }
+  };
+
   finishRun = () => {
     const { firebase, currentUid, history, today } = this.props;
     const { windowId, pactId } = this.props.match.params;
@@ -130,6 +143,14 @@ class Run extends Component {
         lineHeight: "35px",
         paddingTop: "28px",
         pointerEvents: "none"
+      },
+      hint: {
+        position: "fixed",
+        width: "100%",
+        textAlign: "center",
+        bottom: 20,
+        fontSize: 12,
+        color: "rgba(255,255,255,0.5)"
       }
     };
 
@@ -186,7 +207,7 @@ class Run extends Component {
         labelStyle={styles.buttonLabel}
         secondary={true}
       >
-        <Gesture onPress={() => this.finishRun}>
+        <Gesture onPress={() => this.clickFinish}>
           <div style={styles.button} />
         </Gesture>
       </RaisedButton>
@@ -221,6 +242,10 @@ class Run extends Component {
         <Polyline path={this.state.path.slice(1)} />
       </GoogleMap>
     ));
+
+    const doublePressHint = (
+      <div style={styles.hint}>(double press to finish)</div>
+    );
 
     return (
       <div style={styles.run}>
@@ -319,6 +344,7 @@ class Run extends Component {
           0.00 / {this.state.targetDistanceKm.toFixed(2)} km
         </span>
         {started ? finishButton : startButton}
+        {started && doublePressHint}
       </div>
     );
   }
