@@ -53,19 +53,20 @@ class Run extends Component {
     showError: false,
     gpsInterval: null,
     statsIndex: -1,
-    finishClickable: false
+    mapZoom: 18
   };
 
   getLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(position => {
-        var pathArr = this.state.path;
-        pathArr.push({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude
-        });
         this.setState({
-          path: pathArr
+          path: [
+            ...this.state.path,
+            {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            }
+          ]
         });
       });
     } else {
@@ -95,18 +96,6 @@ class Run extends Component {
       }, 2000)
     });
     this.props.hideAppBar();
-  };
-
-  clickFinish = () => {
-    const { finishClickable } = this.state;
-    if (finishClickable) {
-      this.finishRun();
-    } else {
-      this.setState({ finishClickable: true });
-      setTimeout(() => {
-        this.setState({ finishClickable: false });
-      }, 500);
-    }
   };
 
   finishRun = () => {
@@ -143,14 +132,6 @@ class Run extends Component {
         lineHeight: "35px",
         paddingTop: "28px",
         pointerEvents: "none"
-      },
-      hint: {
-        position: "fixed",
-        width: "100%",
-        textAlign: "center",
-        bottom: 20,
-        fontSize: 12,
-        color: "rgba(255,255,255,0.5)"
       }
     };
 
@@ -207,7 +188,7 @@ class Run extends Component {
         labelStyle={styles.buttonLabel}
         secondary={true}
       >
-        <Gesture onPress={() => this.clickFinish}>
+        <Gesture onPress={this.finishRun}>
           <div style={styles.button} />
         </Gesture>
       </RaisedButton>
@@ -233,19 +214,20 @@ class Run extends Component {
       withGoogleMap
     )(() => (
       <GoogleMap
-        defaultZoom={18}
+        zoom={this.state.mapZoom}
         defaultCenter={this.state.path[this.state.path.length - 1]}
         clickableIcons={false}
-        options={{ disableDefaultUI: true, zoomControl: true }}
+        options={{
+          disableDefaultUI: true,
+          zoomControl: true,
+          draggable: false
+        }}
       >
+        <Marker position={this.state.path[1]} />
         <Marker position={this.state.path[this.state.path.length - 1]} />
         <Polyline path={this.state.path.slice(1)} />
       </GoogleMap>
     ));
-
-    const doublePressHint = (
-      <div style={styles.hint}>(double press to finish)</div>
-    );
 
     return (
       <div style={styles.run}>
@@ -284,7 +266,7 @@ class Run extends Component {
                   height: 0,
                   borderLeft: "20px solid transparent",
                   borderRight: "20px solid transparent",
-                  borderTop: "24px solid white",
+                  borderTop: "25px solid white",
                   marginRight: 64,
                   marginLeft: 64
                 }}
@@ -297,7 +279,7 @@ class Run extends Component {
                   height: 0,
                   borderLeft: "20px solid transparent",
                   borderRight: "20px solid transparent",
-                  borderTop: "24px solid white",
+                  borderTop: "25px solid white",
                   marginRight: 64,
                   marginLeft: 64
                 }}
@@ -344,7 +326,6 @@ class Run extends Component {
           0.00 / {this.state.targetDistanceKm.toFixed(2)} km
         </span>
         {started ? finishButton : startButton}
-        {started && doublePressHint}
       </div>
     );
   }
