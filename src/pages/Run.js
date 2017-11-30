@@ -75,21 +75,6 @@ class Run extends Component {
     mapZoom: 18
   };
 
-  async addAltitude(lat, lng) {
-    fetch(
-      "http://open.mapquestapi.com/elevation/v1/profile?key=r1uwrSVPtytWGb6D5WUnwvSCAXS7kG9G&latLngCollection=" +
-        lat +
-        "," +
-        lng
-    )
-      .then(res => res.json())
-      .then(elev => {
-        this.setState({
-          altitudes: [...this.state.altitudes, elev.elevationProfile[0].height]
-        });
-      });
-  }
-
   getLocation = () => {
     const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
       const deg2rad = deg => {
@@ -112,7 +97,6 @@ class Run extends Component {
 
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(position => {
-        this.addAltitude(position.coords.latitude, position.coords.longitude);
         this.setState({
           path: [
             ...this.state.path,
@@ -131,7 +115,8 @@ class Run extends Component {
                   position.coords.latitude,
                   position.coords.longitude
                 )
-          ]
+          ],
+          altitudes: [...this.state.altitudes, position.coords.altitude]
         });
       });
     } else {
