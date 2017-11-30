@@ -23,7 +23,6 @@ import LinearProgress from "material-ui/LinearProgress";
 import TerrainIcon from "material-ui/svg-icons/maps/terrain";
 import SpeedIcon from "material-ui/svg-icons/av/av-timer";
 import TimerIcon from "material-ui/svg-icons/action/hourglass-empty";
-import { withProps } from "recompose";
 import {
   withScriptjs,
   withGoogleMap,
@@ -40,23 +39,59 @@ import {
   LineSeries
 } from "react-vis";
 
+const RunningMap = withScriptjs(
+  withGoogleMap(props => (
+    <GoogleMap
+      zoom={props.zoom}
+      center={props.path[props.path.length - 1]}
+      clickableIcons={false}
+      options={{
+        disableDefaultUI: true,
+        zoomControl: true,
+        draggable: false,
+        zoomControlOptions: { position: "" }
+      }}
+    >
+      <Marker position={props.path[1]} />
+      <Marker position={props.path[props.path.length - 1]} />
+      <Polyline path={props.path.slice(1)} />
+    </GoogleMap>
+  ))
+);
+
 class Run extends Component {
   state = {
     started: false,
     path: [],
+    distances: [],
     timeRemining: moment.duration({
-      hours: 0,
-      minutes: 30,
-      seconds: 0
+      minutes: this.props.users[this.props.currentUid].timeLimit
     }),
-    targetDistanceKm: 2.0,
     showError: false,
-    gpsInterval: null,
     statsIndex: -1,
     mapZoom: 18
   };
 
   getLocation = () => {
+    const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
+      const deg2rad = deg => {
+        return deg * (Math.PI / 180);
+      };
+
+      var R = 6371; // Radius of the earth in km
+      var dLat = deg2rad(lat2 - lat1);
+      var dLon = deg2rad(lon2 - lon1);
+      var a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(deg2rad(lat1)) *
+          Math.cos(deg2rad(lat2)) *
+          Math.sin(dLon / 2) *
+          Math.sin(dLon / 2);
+      var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      var d = R * c; // Distance in km
+      return d;
+    };
+
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(position => {
         this.setState({
@@ -66,6 +101,17 @@ class Run extends Component {
               lat: position.coords.latitude,
               lng: position.coords.longitude
             }
+          ],
+          distances: [
+            ...this.state.distances,
+            this.state.path.length < 2
+              ? 0
+              : getDistanceFromLatLonInKm(
+                  this.state.path[this.state.path.length - 1].lat,
+                  this.state.path[this.state.path.length - 1].lng,
+                  position.coords.latitude,
+                  position.coords.longitude
+                )
           ]
         });
       });
@@ -78,6 +124,9 @@ class Run extends Component {
     this.props.setAppBarTitle("Run");
     this.props.showCloseButton(`/pact/${this.props.match.params.pactId}`);
     this.props.hideMenuButton();
+
+    this.timer = null;
+
     this.getLocation();
   }
 
@@ -85,16 +134,18 @@ class Run extends Component {
     this.props.showAppBar();
     this.props.hideCloseButton();
     this.props.showMenuButton();
-    clearInterval(this.state.gpsInterval);
+
+    clearInterval(this.timer);
   }
 
   startRun = () => {
     this.setState({
-      started: true,
-      gpsInterval: setInterval(() => {
-        this.getLocation();
-      }, 2000)
+      started: true
     });
+    this.timer = setInterval(() => {
+      this.getLocation();
+      this.setState({ timeRemining: this.state.timeRemining.subtract(1, "s") });
+    }, 1000);
     this.props.hideAppBar();
   };
 
@@ -194,44 +245,25 @@ class Run extends Component {
       </RaisedButton>
     );
 
-    const RunningMap = compose(
-      withProps({
-        googleMapURL:
-          "https://maps.googleapis.com/maps/api/js?key=AIzaSyBB1Ur32D9wh0_tP2CsHiNzHR3DMWVPKdE&v=3.exp&libraries=geometry,drawing,places",
-        loadingElement: <div style={{ height: "100%" }} />,
-        containerElement: (
-          <div
-            style={{
-              height: this.state.started
-                ? "calc(100vh - 208px)"
-                : "calc(100vh - 272px)"
-            }}
-          />
-        ),
-        mapElement: <div style={{ height: "100%" }} />
-      }),
-      withScriptjs,
-      withGoogleMap
-    )(() => (
-      <GoogleMap
-        zoom={this.state.mapZoom}
-        defaultCenter={this.state.path[this.state.path.length - 1]}
-        clickableIcons={false}
-        options={{
-          disableDefaultUI: true,
-          zoomControl: true,
-          draggable: false
-        }}
-      >
-        <Marker position={this.state.path[1]} />
-        <Marker position={this.state.path[this.state.path.length - 1]} />
-        <Polyline path={this.state.path.slice(1)} />
-      </GoogleMap>
-    ));
-
     return (
       <div style={styles.run}>
-        <RunningMap />
+        <RunningMap
+          zoom={this.state.mapZoom}
+          path={this.state.path}
+          started={this.state.started}
+          googleMapURL="https://maps.googleapis.com/maps/api/js?key=AIzaSyBB1Ur32D9wh0_tP2CsHiNzHR3DMWVPKdE&v=3.exp&libraries=geometry,drawing,places"
+          loadingElement={<div style={{ height: "100%" }} />}
+          containerElement={
+            <div
+              style={{
+                height: this.state.started
+                  ? "calc(100vh - 208px)"
+                  : "calc(100vh - 272px)"
+              }}
+            />
+          }
+          mapElement={<div style={{ height: "100%" }} />}
+        />
         {this.state.statsIndex >= 0 && (
           <div>
             <Card
@@ -309,8 +341,8 @@ class Run extends Component {
         </BottomNavigation>
         <LinearProgress
           mode="determinate"
-          value={0}
-          max={this.state.targetDistanceKm}
+          value={this.state.distances.reduce((a, b) => a + b, 0)}
+          max={this.props.users[this.props.currentUid].distance}
           style={{ height: "24px" }}
         />
         <span
@@ -323,7 +355,8 @@ class Run extends Component {
             color: "white"
           }}
         >
-          0.00 / {this.state.targetDistanceKm.toFixed(2)} km
+          {this.state.distances.reduce((a, b) => a + b, 0).toFixed(2)} /{" "}
+          {this.props.users[this.props.currentUid].distance.toFixed(2)} km
         </span>
         {started ? finishButton : startButton}
       </div>
@@ -337,7 +370,8 @@ export default compose(
       today: state.firebase.data.today,
       pacts: state.firebase.data.pacts,
       windows: state.firebase.data.windows,
-      currentUid: state.firebase.auth.uid
+      currentUid: state.firebase.auth.uid,
+      users: state.firebase.data.users
     }),
     {
       hideAppBar,
