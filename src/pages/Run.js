@@ -297,8 +297,8 @@ class Run extends Component {
                     <LineSeries
                       data={altitudeSeries} curve={"curveMonotoneX"} 
                     />
-                    <XAxis title="Elevation (m above sea level)" />
-                    <YAxis title="Time (s)" />
+                    <XAxis title="Time (s)" />
+                    <YAxis title="Elevation (m above sea level)" />
                   </FlexibleWidthXYPlot>
                 ))}
                 {!this.state.started && <h4 style={{textAlign: "center"}}>Start running to see your stats here...</h4>}
