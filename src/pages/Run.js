@@ -52,8 +52,8 @@ const RunningMap = withScriptjs(
         zoomControlOptions: { position: "" }
       }}
     >
-      <Marker position={props.path[1]} />
-      <Marker position={props.path[props.path.length - 1]} />
+      <Marker position={props.path[1]} options={{icon: "http://www.google.com/intl/en_us/mapfiles/ms/micons/ltblue-dot.png"}} />
+      <Marker position={props.path[props.path.length - 1]} options={{icon: "http://www.google.com/intl/en_us/mapfiles/ms/micons/pink-dot.png"}}/>
       <Polyline path={props.path.slice(1)} />
     </GoogleMap>
   ))
