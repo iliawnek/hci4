@@ -284,12 +284,12 @@ class Run extends Component {
               style={{ position: "absolute", bottom: 232, left: 10, right: 10 }}
             >
               <CardText>
-                {this.state.statsIndex === 0 ? (
+                {this.state.started && (this.state.statsIndex === 0 ? (
                   <FlexibleWidthXYPlot height={200}>
                     <HorizontalGridLines />
                     <LineSeries data={speedSeries} curve={"curveMonotoneX"} />
-                    <XAxis />
-                    <YAxis />
+                    <XAxis title="Time (s)" />
+                    <YAxis title="Speed (km/h)" />
                   </FlexibleWidthXYPlot>
                 ) : (
                   <FlexibleWidthXYPlot height={200}>
@@ -297,10 +297,11 @@ class Run extends Component {
                     <LineSeries
                       data={altitudeSeries} curve={"curveMonotoneX"} 
                     />
-                    <XAxis />
-                    <YAxis />
+                    <XAxis title="Elevation (m above sea level)" />
+                    <YAxis title="Time (s)" />
                   </FlexibleWidthXYPlot>
-                )}
+                ))}
+                {!this.state.started && <h4 style={{textAlign: "center"}}>Start running to see your stats here...</h4>}
               </CardText>
             </Card>
             <div
