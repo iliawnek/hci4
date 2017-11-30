@@ -32,7 +32,7 @@ import {
 } from "react-google-maps";
 import { Card, CardText } from "material-ui/Card";
 import {
-  XYPlot,
+  FlexibleWidthXYPlot,
   XAxis,
   YAxis,
   HorizontalGridLines,
@@ -64,13 +64,31 @@ class Run extends Component {
     started: false,
     path: [],
     distances: [],
+    altitudes: [],
     timeRemining: moment.duration({
-      minutes: this.props.users[this.props.currentUid].timeLimit
+      minutes: this.props.users
+        ? this.props.users[this.props.currentUid].timeLimit
+        : 10
     }),
     showError: false,
     statsIndex: -1,
     mapZoom: 18
   };
+
+  async addAltitude(lat, lng) {
+    fetch(
+      "http://open.mapquestapi.com/elevation/v1/profile?key=r1uwrSVPtytWGb6D5WUnwvSCAXS7kG9G&latLngCollection=" +
+        lat +
+        "," +
+        lng
+    )
+      .then(res => res.json())
+      .then(elev => {
+        this.setState({
+          altitudes: [...this.state.altitudes, elev.elevationProfile[0].height]
+        });
+      });
+  }
 
   getLocation = () => {
     const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
@@ -94,6 +112,7 @@ class Run extends Component {
 
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(position => {
+        this.addAltitude(position.coords.latitude, position.coords.longitude);
         this.setState({
           path: [
             ...this.state.path,
@@ -245,6 +264,16 @@ class Run extends Component {
       </RaisedButton>
     );
 
+    var speedSeries = [];
+    this.state.distances.forEach((d, i) => {
+      speedSeries.push({ x: i - 1, y: d * 3600 });
+    });
+
+    var altitudeSeries = [];
+    this.state.altitudes.forEach((a, i) => {
+      altitudeSeries.push({ x: i - 1, y: a });
+    });
+
     return (
       <div style={styles.run}>
         <RunningMap
@@ -270,14 +299,23 @@ class Run extends Component {
               style={{ position: "absolute", bottom: 232, left: 10, right: 10 }}
             >
               <CardText>
-                <XYPlot width={300} height={200}>
-                  <HorizontalGridLines />
-                  <LineSeries
-                    data={[{ x: 1, y: 10 }, { x: 2, y: 5 }, { x: 3, y: 15 }]}
-                  />
-                  <XAxis />
-                  <YAxis />
-                </XYPlot>
+                {this.state.statsIndex === 0 ? (
+                  <FlexibleWidthXYPlot height={200}>
+                    <HorizontalGridLines />
+                    <LineSeries data={speedSeries} curve={"curveMonotoneX"} />
+                    <XAxis />
+                    <YAxis />
+                  </FlexibleWidthXYPlot>
+                ) : (
+                  <FlexibleWidthXYPlot height={200}>
+                    <HorizontalGridLines />
+                    <LineSeries
+                      data={altitudeSeries} curve={"curveMonotoneX"} 
+                    />
+                    <XAxis />
+                    <YAxis />
+                  </FlexibleWidthXYPlot>
+                )}
               </CardText>
             </Card>
             <div
